@@ -30,8 +30,10 @@ import { Separator } from "../ui/separator";
 import { MenuLink } from "./MenuLinkt";
 import { useMenuState } from "@/hooks/useMenuState";
 import { useCategories } from "@/hooks/useCategory";
+import { useCartStore } from "@/store/cartStore";
 
 export default function Navbar() {
+  const { cartCount, wishlistCount } = useCartStore();
   const { categories, loading, error } = useCategories();
   const {
     mainOpen,
@@ -41,10 +43,6 @@ export default function Navbar() {
     openCategories,
     closeCategoriesAndOpenMain,
   } = useMenuState();
-
-  // Temporal – se migrará a Zustand
-  const cartCount = 0;
-  const wishlistCount = 0;
 
   if (loading) {
     return (
@@ -228,7 +226,14 @@ export default function Navbar() {
           <Button variant="ghost" size="icon" className="relative h-10 w-10">
             <Link href="/wishlist">
               <Heart className="h-7 w-7" />
-              {wishlistCount > 0 && <Badge className="absolute -top-1 -right-1">{wishlistCount}</Badge>}
+              {wishlistCount > 0 && (
+                <Badge
+                  variant="destructive"
+                  className="absolute -top-1 -right-1 h-6 min-w-6 text-xs flex items-center justify-center"
+                >
+                  {wishlistCount}
+                </Badge>
+              )}
             </Link>
           </Button>
 
@@ -238,7 +243,14 @@ export default function Navbar() {
           <Button variant="ghost" size="icon" className="relative h-10 w-10">
             <Link href="/cart">
               <ShoppingCart className="h-7 w-7" />
-              {cartCount > 0 && <Badge className="absolute -top-1 -right-1">{cartCount}</Badge>}
+              {cartCount > 0 && (
+                <Badge
+                  variant="destructive"
+                  className="absolute -top-1 -right-1 h-6 min-w-6 text-xs flex items-center justify-center"
+                >
+                  {cartCount}
+                </Badge>
+              )}
             </Link>
           </Button>
         </div>
