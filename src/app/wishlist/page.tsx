@@ -1,24 +1,24 @@
 // src/app/wishlist/page.tsx
 "use client";
 
-import { Product, useCartStore } from "@/store/cartStore";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import Image from "next/image";
 import Link from "next/link";
-import { Trash2, ShoppingCart } from "lucide-react";
-import { toast } from "sonner";
+import { useWishlist } from "@/context/WishlistContext";
+import { ProductCard } from "@/components/product/ProductCard";
+import { Heart } from "lucide-react";
 
 export default function WishlistPage() {
-  const { wishlistItems, removeFromWishlist, addToCart } = useCartStore();
+  const { wishlist, totalFavorites, isInWishlist } = useWishlist();
 
-  const handleMoveToCart = (item: Product) => {
-    addToCart(item);
-    removeFromWishlist(item.id);
-    toast.success("Producto movido al carrito");
-  };
+  if (!isInWishlist) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#DB4444]"></div>
+      </div>
+    );
+  }
 
-  if (wishlistItems.length === 0) {
+  if (totalFavorites === 0) {
     return (
       <div className="container py-12 text-center">
         <h1 className="text-3xl font-bold mb-6">Lista de deseos</h1>
@@ -30,56 +30,36 @@ export default function WishlistPage() {
     );
   }
 
-  return (
-    <div className="container py-8">
-      <h1 className="text-3xl font-bold mb-8">Lista de deseos ({wishlistItems.length})</h1>
+  if (totalFavorites === 0) {
+    return (
+      <div className="min-h-[calc(100vh-200px)] bg-gray-50 flex items-center justify-center px-4">
+        <div className="text-center">
+          <Heart className="mx-auto h-24 w-24 text-gray-300 mb-4" />
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Tu lista de deseos está vacía</h1>
+          <p className="text-gray-600 mb-6">Guarda productos para comprarlos más tarde</p>
+          <Link href="/products">
+            <Button className="bg-[#DB4444] hover:bg-[#c43d3d]">
+              Explorar Productos
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {wishlistItems.map((item) => (
-          <Card key={item.id} className="overflow-hidden">
-            <CardHeader className="p-4">
-              <div className="relative aspect-square">
-                <Image
-                  src={item.thumbnail}
-                  alt={item.title}
-                  fill
-                  className="object-cover rounded-t-lg"
-                />
-              </div>
-            </CardHeader>
-            <CardContent className="p-4">
-              <CardTitle className="line-clamp-2">{item.title}</CardTitle>
-              <p className="text-lg font-bold mt-2">
-                ${(item.price * (1 - item.discountPercentage / 100)).toFixed(2)}
-                <span className="text-sm text-muted-foreground line-through ml-2">
-                  ${item.price.toFixed(2)}
-                </span>
-              </p>
-            </CardContent>
-            <CardFooter className="p-4 pt-0 flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1"
-                onClick={() => {
-                  removeFromWishlist(item.id);
-                  toast.success("Eliminado de la lista de deseos");
-                }}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Eliminar
-              </Button>
-              <Button
-                size="sm"
-                className="flex-1"
-                onClick={() => handleMoveToCart(item)}
-              >
-                <ShoppingCart className="h-4 w-4 mr-2" />
-                Al carrito
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Mi Lista de Deseos</h1>
+          <p className="text-gray-600">{totalFavorites !== 1 ? `${totalFavorites} productos guardados` : "1 producto guardado"}</p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {wishlist.map((item) => (
+            <ProductCard key={item.id} product={item} />
+          ))}
+        </div>
       </div>
     </div>
   );

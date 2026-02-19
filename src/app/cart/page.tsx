@@ -1,164 +1,186 @@
-// src/app/cart/page.tsx
 "use client";
 
-import { useCartStore } from "@/store/cartStore";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
-import { Trash2, Plus, Minus } from "lucide-react";
-import { toast } from "sonner";
-import { useState } from "react";
-import { Separator } from "@/components/ui/separator";
+import { Trash2, Plus, Minus, ArrowLeft, ShoppingBag } from "lucide-react";
 import Link from "next/link";
+import { useCart } from "@/context/CartContext";
+import { formatCLP, convertUSDtoCLP } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 export default function CartPage() {
   const {
-    cartItems,
+    cart,
     removeFromCart,
     updateQuantity,
     clearCart,
-    cartCount,
-    cartTotal,
-  } = useCartStore();
+    totalItems,
+    totalPrice,
+    isLoaded
+  } = useCart();
+  const router = useRouter();
 
-  const [checkoutLoading, setCheckoutLoading] = useState(false);
-
-  const handleCheckout = () => {
-    setCheckoutLoading(true);
-    toast.loading("Procesando pago con Mercado Pago...");
-
-    setTimeout(() => {
-      toast.dismiss();
-      toast.success(`¡Pago aprobado! Orden #${Math.floor(Math.random() * 1000000)}`);
-      clearCart();
-      setCheckoutLoading(false);
-    }, 2500);
-  };
-
-  if (cartItems.length === 0) {
+  if (!isLoaded) {
     return (
-      <div className="container py-12 text-center">
-        <h1 className="text-3xl font-bold mb-6">Carrito</h1>
-        <p className="text-muted-foreground mb-8">Tu carrito está vacío</p>
-        <Button asChild>
-          <Link href="/">Seguir comprando</Link>
-        </Button>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#DB4444]"></div>
       </div>
     );
   }
 
-  return (
-    <div className="container py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Carrito ({cartCount})</h1>
-        <Button variant="outline" onClick={() => {
-          clearCart();
-          toast.success("Carrito limpiado");
-        }}>
-          Vaciar carrito
-        </Button>
+  if (totalItems === 0) {
+    return (
+      <div className="min-h-[calc(100vh-200px)] bg-gray-50 flex items-center justify-center px-4">
+        <div className="text-center">
+          <ShoppingBag className="mx-auto h-24 w-24 text-gray-300 mb-4" />
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Tu carrito está vacío</h1>
+          <p className="text-gray-600 mb-6">Agrega productos para comenzar tu compra</p>
+          <Link href="/">
+            <Button className="bg-[#DB4444] hover:bg-[#c43d3d]">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Explorar Productos
+            </Button>
+          </Link>
+        </div>
       </div>
+    );
+  }
 
-      <div className="grid lg:grid-cols-3 gap-8">
-        {/* Lista de productos */}
-        <div className="lg:col-span-2 space-y-4">
-          {cartItems.map((item) => (
-            <Card key={item.id} className="overflow-hidden">
-              <CardContent className="p-4 flex gap-4">
-                <div className="relative w-24 h-24 shrink-0">
-                  <Image
-                    src={item.thumbnail}
-                    alt={item.title}
-                    fill
-                    className="object-cover rounded"
-                  />
-                </div>
+  // Lógica de envío basada en CLP
+  const shipping = totalPrice >= 50000 ? 0 : 5000;
+  const finalTotal = totalPrice + shipping;
 
-                <div className="flex-1">
-                  <h3 className="font-medium line-clamp-2">{item.title}</h3>
-                  <div className="mt-2 flex items-center gap-3">
-                    <div className="flex items-center border rounded-md">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                        disabled={item.quantity <= 1}
-                      >
-                        <Minus className="h-4 w-4" />
-                      </Button>
-                      <span className="w-10 text-center">{item.quantity}</span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                        disabled={item.quantity >= item.stock}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-destructive hover:text-destructive/80"
-                      onClick={() => {
-                        removeFromCart(item.id);
-                        toast.success("Producto eliminado");
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4 mr-1" />
-                      Eliminar
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="text-right">
-                  <p className="font-bold">
-                    ${(item.price * (1 - item.discountPercentage / 100) * item.quantity).toFixed(2)}
-                  </p>
-                  <p className="text-sm text-muted-foreground line-through">
-                    ${(item.price * item.quantity).toFixed(2)}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Carrito de Compras</h1>
+          <p className="text-gray-600">
+            {totalItems} producto{totalItems !== 1 ? "s" : ""} en tu carrito
+          </p>
         </div>
 
-        {/* Resumen */}
-        <div className="lg:col-span-1">
-          <Card>
-            <CardHeader>
-              <CardTitle>Resumen del pedido</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex justify-between">
-                <span>Subtotal</span>
-                <span>${cartTotal.toFixed(2)}</span>
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+          <div className="lg:col-span-2 space-y-4">
+            {cart.map((item) => {
+              const unitPriceCLP = convertUSDtoCLP(item.product.price);
+              const subtotalItemCLP = unitPriceCLP * item.quantity;
+
+              return (
+                <div key={item.product.id} className="bg-white rounded-lg shadow-md p-6 flex flex-col sm:flex-row gap-4">
+                  <div className="relative w-full sm:w-32 aspect-square bg-gray-100 rounded-lg overflow-hidden shrink-0">
+                    <Image
+                      src={item.product.images?.[0] ?? item.product.thumbnail}
+                      alt={item.product.title}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+
+                  <div className="flex-1 flex flex-col justify-between">
+                    <div>
+                      <Link href={`/product/${item.product.id}`} className="hover:text-[#DB4444] transition-colors">
+                        <h3 className="font-semibold text-gray-900 mb-2">{item.product.title}</h3>
+                      </Link>
+                      {/* Mostramos precio unitario convertido */}
+                      <p className="text-2xl font-bold text-[#DB4444] mb-2">{formatCLP(unitPriceCLP)}</p>
+
+                      {item.product.discountPercentage > 0 && (
+                        <span className="inline-block bg-red-100 text-red-700 text-xs font-semibold px-2 py-1 rounded">
+                          -{Math.round(item.product.discountPercentage)}% OFF
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between mt-4">
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                          className="rounded-lg border border-gray-300 p-1.5 hover:bg-gray-100 disabled:opacity-50"
+                          disabled={item.quantity <= 1}
+                        >
+                          <Minus className="h-4 w-4" />
+                        </button>
+                        <span className="w-12 text-center font-medium">{item.quantity}</span>
+                        <button
+                          onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                          className="rounded-lg border border-gray-300 p-1.5 hover:bg-gray-100 disabled:opacity-50"
+                          disabled={item.quantity >= item.product.stock}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </button>
+                      </div>
+
+                      <div className="flex items-center space-x-4">
+                        <p className="text-lg font-semibold text-gray-900">
+                          {formatCLP(subtotalItemCLP)}
+                        </p>
+                        <button
+                          onClick={() => removeFromCart(item.product.id)}
+                          className="text-red-600 hover:text-red-700 p-2"
+                        >
+                          <Trash2 className="h-5 w-5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            <Button
+              variant="outline"
+              onClick={clearCart}
+              className="w-full border-red-600 text-red-600 hover:bg-red-50"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Vaciar Carrito
+            </Button>
+          </div>
+
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-lg shadow-md p-6 sticky top-24">
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Resumen del Pedido</h2>
+
+              <div className="space-y-3 mb-6">
+                <div className="flex justify-between text-gray-600">
+                  <span>Subtotal</span>
+                  <span className="font-medium">{formatCLP(totalPrice)}</span>
+                </div>
+                <div className="flex justify-between text-gray-600">
+                  <span>Envío</span>
+                  <span className="font-medium">{shipping === 0 ? "GRATIS" : formatCLP(shipping)}</span>
+                </div>
+
+                {shipping === 0 ? (
+                  <p className="text-xs text-green-600">✓ ¡Felicitaciones! Tienes envío gratis</p>
+                ) : (
+                  <p className="text-xs text-orange-600">
+                    Agrega {formatCLP(50000 - totalPrice)} más para envío gratis
+                  </p>
+                )}
+
+                <div className="border-t pt-3 flex justify-between text-lg font-bold text-gray-900">
+                  <span>Total</span>
+                  <span className="text-[#DB4444]">{formatCLP(finalTotal)}</span>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span>Envío</span>
-                <span>Gratis</span>
-              </div>
-              <Separator />
-              <div className="flex justify-between font-bold text-lg">
-                <span>Total</span>
-                <span>${cartTotal.toFixed(2)}</span>
-              </div>
-            </CardContent>
-            <CardFooter>
+
               <Button
-                className="w-full"
-                size="lg"
-                onClick={handleCheckout}
-                disabled={checkoutLoading}
+                onClick={() => router.push("/checkout")}
+                className="w-full bg-[#DB4444] hover:bg-[#c43d3d] text-white py-6 text-lg font-semibold mb-4"
               >
-                {checkoutLoading ? "Procesando..." : "Finalizar compra"}
+                Finalizar Compra
               </Button>
-            </CardFooter>
-          </Card>
+
+              <Link href="/">
+                <Button variant="outline" className="w-full">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Seguir Comprando
+                </Button>
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </div>
