@@ -1,35 +1,36 @@
-// src/hooks/useCategories.ts
-// fetch + estado de categorías
+"use client";
+
 import { useState, useEffect } from "react";
+import { Product, Category } from "@/types/product";
+import { productService } from "@/services/productService";
 
-interface Category {
-  slug: string;
-  name: string;
-  url?: string;
-}
-
-export const useCategories = () => {
+export function useCategory(slug?: string) {
+  const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchData = async () => {
       setLoading(true);
+      setError(null);
       try {
-        const res = await fetch("https://dummyjson.com/products/categories");
-        if (!res.ok) throw new Error("Error al cargar categorías");
-        const data: Category[] = await res.json();
-        setCategories(data);
+        if (slug) {
+          const data = await productService.getProductsByCategory(slug);
+          setProducts(data);
+        } else {
+          const data = await productService.getCategories();
+          setCategories(data);
+        }
       } catch (err) {
-        setError((err as Error).message);
+        setError(err instanceof Error ? err.message : "Error desconocido");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchCategories();
-  }, []);
+    fetchData();
+  }, [slug]);
 
-  return { categories, loading, error };
-};
+  return { products, categories, loading, error };
+}
