@@ -18,27 +18,23 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
-  const [cart, setCart] = useState<CartItem[]>(() => {
-    if (typeof window !== "undefined") {
-      const savedCart = localStorage.getItem("cart_storage");
-      if (savedCart) {
-        try {
-          return JSON.parse(savedCart);
-        } catch (error) {
-          console.error("Error al cargar carrito inicial", error);
-        }
-      }
-    }
-    return [];
-  });
-
+  const [cart, setCart] = useState<CartItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
+  // Cargar datos de localStorage solo una vez al montar
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    const savedCart = localStorage.getItem("cart_storage");
+    if (savedCart) {
+      try {
+        setCart(JSON.parse(savedCart));
+      } catch (error) {
+        console.error("Error al cargar carrito inicial", error);
+      }
+    }
     setIsLoaded(true);
   }, []);
 
+  // Guardar en localStorage solo cuando el carrito cambie Y ya esté cargado
   useEffect(() => {
     if (isLoaded) {
       localStorage.setItem("cart_storage", JSON.stringify(cart));
@@ -75,21 +71,18 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     );
   };
 
-  const clearCart = () => {
-    setCart([]);
-  };
+  const clearCart = () => setCart([]);
 
-  const totalItems = useMemo(() =>
-    cart.reduce((acc, item) => acc + item.quantity, 0),
-    [cart]);
+  const totalItems = useMemo(() => 
+    cart.reduce((acc, item) => acc + item.quantity, 0), 
+  [cart]);
 
   const totalPrice = useMemo(() =>
     cart.reduce((acc, item) => {
-      // Convertimos cada producto a CLP antes de sumar
       const priceInCLP = convertUSDtoCLP(item.product.price);
       return acc + (priceInCLP * item.quantity);
     }, 0),
-    [cart]);
+  [cart]);
 
   return (
     <CartContext.Provider

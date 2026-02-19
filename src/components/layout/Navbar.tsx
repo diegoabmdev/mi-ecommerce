@@ -13,6 +13,7 @@ import {
   X,
   ChevronDown,
   User,
+  Loader2,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -36,59 +37,37 @@ import { Separator } from "../ui/separator";
 export default function Navbar() {
   const { totalItems } = useCart();
   const { totalFavorites } = useWishlist();
+
+  // Usamos nuestro hook refactorizado
   const { categories, loading, error } = useCategory();
 
-  // Estado para controlar el Sheet y qué vista mostrar
   const [isOpen, setIsOpen] = useState(false);
   const [menuView, setMenuView] = useState<"main" | "categories">("main");
-
-  if (loading) {
-    return (
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur-md">
-        <div className="container flex h-16 items-center justify-between px-4 md:px-6">
-          <span className="text-2xl font-bold">NovaCart</span>
-          <div>Cargando...</div>
-        </div>
-      </header>
-    );
-  }
-
-  if (error) {
-    return <div className="text-destructive text-center py-4">Error: {error}</div>;
-  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur-md font-bold">
       <div className="flex h-13 lg:h-18 items-center justify-between gap-4 px-2 lg:px-10">
 
         <div className="flex items-center gap-4">
-          {/* Sheet para todo el menú (Mobile + Desktop) */}
           <Sheet open={isOpen} onOpenChange={(open) => {
             setIsOpen(open);
-            if (!open) setTimeout(() => setMenuView("main"), 300); // Reset al cerrar
+            if (!open) setTimeout(() => setMenuView("main"), 300);
           }}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="relative h-10 w-10 lg:hidden">
                 <motion.div
                   animate={{ rotate: isOpen ? 90 : 0 }}
-                  transition={{ duration: 0.4, ease: "easeInOut" }}
-                  className="absolute inset-0 flex items-center justify-center"
+                  transition={{ duration: 0.2 }}
                 >
                   {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
                 </motion.div>
               </Button>
             </SheetTrigger>
 
-            {/* Desktop Menu Trigger */}
             <div className="hidden lg:block">
               <SheetTrigger asChild>
                 <Button variant="ghost" size="lg" className="gap-2 px-4">
-                  <motion.div
-                    animate={{ rotate: isOpen ? 90 : 0 }}
-                    transition={{ duration: 0.4, ease: "easeInOut" }}
-                  >
-                    {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-                  </motion.div>
+                  <Menu className="h-5 w-5" />
                   <span className="font-medium text-lg">Menú</span>
                 </Button>
               </SheetTrigger>
@@ -97,58 +76,73 @@ export default function Navbar() {
             <SheetContent side="left" className="w-[85vw] sm:w-72 p-0" showCloseButton={false}>
               <AnimatePresence mode="wait">
                 {menuView === "main" ? (
-                  /* VISTA PRINCIPAL */
-                  <div className="flex flex-col h-full">
-                    <div className="px-6 py-4 border-b flex items-center justify-between lg:px-7">
-                      <SheetTitle className="text-xl font-bold lg:text-lg">¡Hola!</SheetTitle>
+                  <motion.div
+                    key="main"
+                    initial={{ x: -20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    exit={{ x: -20, opacity: 0 }}
+                    className="flex flex-col h-full"
+                  >
+                    <div className="px-6 py-4 border-b flex items-center justify-between">
+                      <SheetTitle className="text-xl font-bold">¡Hola!</SheetTitle>
                       <SheetClose asChild>
-                        <Button variant="ghost" size="icon" className="rounded-full hover:bg-muted/50">
-                          <X className="h-6 w-6" />
-                        </Button>
+                        <Button variant="ghost" size="icon"><X className="h-6 w-6" /></Button>
                       </SheetClose>
                     </div>
 
                     <ScrollArea className="flex-1 px-2">
-                      <div className="flex flex-col py-4 gap-y-4">
+                      <div className="flex flex-col py-4 gap-y-2">
                         <SheetClose asChild><MenuLink href="/">Inicio</MenuLink></SheetClose>
                         <SheetClose asChild><MenuLink href="/shop">Tienda</MenuLink></SheetClose>
                         <SheetClose asChild><MenuLink href="/offers">Ofertas</MenuLink></SheetClose>
 
-                        <Separator />
+                        <Separator className="my-2" />
+
                         <Button
                           variant="ghost"
-                          className="mt-4 group justify-between px-6 py-4 text-lg hover:bg-muted/70 hover:border-l-[6px] hover:border-indigo-500 lg:py-8"
+                          className="group justify-between px-6 py-6 text-lg hover:bg-muted/70 border-l-4 border-transparent hover:border-indigo-500 transition-all"
                           onClick={() => setMenuView("categories")}
                         >
                           Categorías
-                          <ChevronRight className="ml-auto h-5 w-5 transition-all group-hover:text-indigo-500 group-hover:scale-110" />
+                          {loading ? (
+                            <Loader2 className="h-4 w-4 animate-spin opacity-50" />
+                          ) : (
+                            <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                          )}
                         </Button>
                       </div>
                     </ScrollArea>
-                  </div>
+                  </motion.div>
                 ) : (
-                  /* VISTA CATEGORÍAS */
-                  <div className="flex flex-col h-full w-full">
-                    <SheetHeader className="px-2 border-b flex flex-row items-center gap-0 h-16.25">
+                  <motion.div
+                    key="categories"
+                    initial={{ x: 20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    exit={{ x: 20, opacity: 0 }}
+                    className="flex flex-col h-full w-full"
+                  >
+                    <SheetHeader className="px-4 border-b flex flex-row items-center gap-2 h-16">
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-10 w-10 rounded-full hover:bg-muted/50 transition-colors"
                         onClick={() => setMenuView("main")}
                       >
                         <ArrowLeft className="h-6 w-6" />
-                        <span className="sr-only">Volver</span>
                       </Button>
                       <SheetTitle className="text-lg font-bold">Categorías</SheetTitle>
                     </SheetHeader>
 
-                    <ScrollArea className="h-[calc(100vh-65px)] w-full">
-                      <div className="flex flex-col py-4 pb-10">
+                    <ScrollArea className="flex-1">
+                      <div className="flex flex-col py-2">
+                        {error && (
+                          <p className="px-6 py-4 text-sm text-destructive">Error al cargar categorías</p>
+                        )}
+
                         {categories.map((cat) => (
                           <SheetClose asChild key={cat.slug}>
                             <Link
                               href={`/category/${cat.slug}`}
-                              className="mx-2 px-6 py-4 text-lg hover:font-medium rounded-md hover:border-l-[6px] hover:border-indigo-500 capitalize transition-all"
+                              className="px-8 py-4 text-base capitalize hover:bg-indigo-50 hover:text-indigo-600 border-l-4 border-transparent hover:border-indigo-500 transition-all"
                               onClick={() => setIsOpen(false)}
                             >
                               {cat.name}
@@ -157,68 +151,69 @@ export default function Navbar() {
                         ))}
                       </div>
                     </ScrollArea>
-                  </div>
+                  </motion.div>
                 )}
               </AnimatePresence>
             </SheetContent>
           </Sheet>
 
           <Link href="/" className="text-2xl font-bold tracking-tight text-indigo-500">
-            Nova<span>Cart.com</span>
+            Nova<span className="text-foreground">Cart</span>
           </Link>
         </div>
 
         {/* Buscador Desktop */}
-        <div className="hidden lg:block lg:flex-1 lg:max-w-4xl mx-8">
+        <div className="hidden lg:block lg:flex-1 lg:max-w-2xl mx-8">
           <form className="relative">
             <Input
-              placeholder="Buscar en NovaCart.com"
-              className="h-12 pl-6 pr-14 bg-muted/60 border border-input/50 rounded-full text-base shadow-sm"
+              placeholder="Buscar en NovaCart..."
+              className="h-11 pl-6 pr-14 bg-muted/50 border-none rounded-full text-base focus-visible:ring-indigo-500"
             />
             <button
               type="submit"
-              className="flex items-center justify-center absolute right-0 top-1/2 -translate-y-1/2 h-11 w-11 rounded-full bg-indigo-500 hover:bg-indigo-500/90 text-white shadow-md transition-all duration-200 cursor-pointer"
+              className="absolute right-1 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-indigo-500 flex items-center justify-center text-white hover:bg-indigo-600 transition-colors"
             >
-              <Search className="h-6 w-6" />
+              <Search className="h-5 w-5" />
             </button>
           </form>
         </div>
 
-        {/* Derecha: Iconos y User */}
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" className="hidden md:flex items-center gap-2">
+        {/* Iconos Derecha */}
+        <div className="flex items-center gap-1 sm:gap-3">
+          <Button variant="ghost" size="sm" className="hidden md:flex gap-2">
             <User className="h-5 w-5" />
-            <span className="text-sm font-medium leading-none">Hola, Iniciar sesión</span>
-            <ChevronDown className="h-6 w-6" />
+            <div className="flex flex-col items-start text-[10px] leading-tight">
+              <span className="font-normal opacity-70">Hola, identifícate</span>
+              <span className="font-bold">Mi Cuenta</span>
+            </div>
+            <ChevronDown className="h-3 w-3 opacity-50" />
           </Button>
 
-          <div className="hidden md:block h-10 w-px bg-gray-200 self-center" />
+          <div className="hidden md:block h-8 w-px bg-border" />
 
-          <Button variant="ghost" size="icon" className="relative h-10 w-10">
-            <Link href="/wishlist">
-              <Heart className="h-7 w-7" />
+          <Link href="/wishlist">
+            <Button variant="ghost" size="icon" className="relative">
+              <Heart className="h-6 w-6" />
               {totalFavorites > 0 && (
-                <Badge variant="destructive" className="absolute -top-1 -right-1 h-6 min-w-6 text-xs flex items-center justify-center">
+                <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center bg-indigo-500">
                   {totalFavorites}
                 </Badge>
               )}
-            </Link>
-          </Button>
+            </Button>
+          </Link>
 
-          <div className="hidden md:block h-10 w-px bg-gray-200 self-center" />
-
-          <Button variant="ghost" size="icon" className="relative h-10 w-10">
-            <Link href="/cart">
-              <ShoppingCart className="h-7 w-7" />
+          <Link href="/cart">
+            <Button variant="ghost" size="icon" className="relative">
+              <ShoppingCart className="h-6 w-6" />
               {totalItems > 0 && (
-                <Badge variant="destructive" className="absolute -top-1 -right-1 h-6 min-w-6 text-xs flex items-center justify-center">
+                <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center bg-indigo-500">
                   {totalItems}
                 </Badge>
               )}
-            </Link>
-          </Button>
+            </Button>
+          </Link>
         </div>
-      </div >
-    </header >
+      </div>
+    </header>
   );
 }
