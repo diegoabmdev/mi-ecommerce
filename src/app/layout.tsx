@@ -21,7 +21,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "NovaCart – Tu tienda moderna",
-  description: "Proyecto portafolio e-commerce con Next.js, Zustand y DummyJSON",
+  description:
+    "Proyecto portafolio e-commerce con Next.js, Zustand y DummyJSON",
 };
 
 export default function RootLayout({
@@ -37,7 +38,11 @@ export default function RootLayout({
         <WishlistProvider>
           <CartProvider>
             <div className="relative flex min-h-screen flex-col">
-              <Navbar />
+              <Suspense
+                fallback={<div className="h-20 w-full bg-background" />}
+              >
+                <Navbar />
+              </Suspense>
 
               <main className="flex-1">
                 <Suspense fallback={null}>{children}</Suspense>
