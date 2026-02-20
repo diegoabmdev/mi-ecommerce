@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Product } from "@/types/product";
+import { Product } from "@/types/types";
 import { productService } from "@/services/productService";
 
 export function useProducts() {

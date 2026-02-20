@@ -20,18 +20,6 @@ export default function WishlistPage() {
 
   if (totalFavorites === 0) {
     return (
-      <div className="container py-12 text-center">
-        <h1 className="text-3xl font-bold mb-6">Lista de deseos</h1>
-        <p className="text-muted-foreground mb-8">Tu lista de deseos está vacía</p>
-        <Button asChild>
-          <Link href="/">Explorar productos</Link>
-        </Button>
-      </div>
-    );
-  }
-
-  if (totalFavorites === 0) {
-    return (
       <div className="min-h-[calc(100vh-200px)] bg-gray-50 flex items-center justify-center px-4">
         <div className="text-center">
           <Heart className="mx-auto h-24 w-24 text-gray-300 mb-4" />

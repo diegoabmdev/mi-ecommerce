@@ -1,4 +1,4 @@
-import { Product, ProductsResponse, Category } from "@/types/product";
+import { Product, ProductsResponse, Category } from "@/types/types";
 
 const BASE_URL = "https://dummyjson.com";
 
