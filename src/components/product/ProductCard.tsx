@@ -46,7 +46,7 @@ export function ProductCard({ product }: ProductCardProps) {
       {/* Wishlist Button */}
       <button
         onClick={handleWishlistClick}
-        className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-card/80 backdrop-blur-sm transition-colors hover:bg-card"
+        className="cursor-pointer absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-card/80 backdrop-blur-sm transition-colors hover:bg-card"
         aria-label={isFavorite ? "Quitar de favoritos" : "Agregar a favoritos"}
       >
         <Heart

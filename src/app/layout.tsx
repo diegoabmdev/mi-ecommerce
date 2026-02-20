@@ -8,6 +8,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
 import { Suspense } from "react";
+import Footer from "@/components/footer/Footer";
+import { ScrollToTop } from "@/components/footer/ScrollToTop";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,8 +37,8 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground`}
       >
-        <WishlistProvider>
-          <CartProvider>
+        <CartProvider>
+          <WishlistProvider>
             <div className="relative flex min-h-screen flex-col">
               <Suspense
                 fallback={<div className="h-20 w-full bg-background" />}
@@ -48,16 +50,11 @@ export default function RootLayout({
                 <Suspense fallback={null}>{children}</Suspense>
               </main>
 
-              <footer className="border-t py-6 md:py-0">
-                <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
-                  <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
-                    © {new Date().getFullYear()} Diego – Portafolio E-commerce
-                  </p>
-                </div>
-              </footer>
+              <Footer />
             </div>
-          </CartProvider>
-        </WishlistProvider>
+          </WishlistProvider>
+        </CartProvider>
+        <ScrollToTop />
         <Toaster richColors position="top-right" />
       </body>
     </html>
