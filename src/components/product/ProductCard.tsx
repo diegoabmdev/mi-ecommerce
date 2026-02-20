@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Heart, ShoppingCart, Star } from "lucide-react";
 import { formatCLP, convertUSDtoCLP } from "@/lib/utils";
 import { useWishlist } from "@/context/WishlistContext";
-import { Product } from "@/types/product";
+import { Product } from "@/types/types";
 import { useCart } from "@/context/CartContext";
 import { Button } from "../ui/button";
 

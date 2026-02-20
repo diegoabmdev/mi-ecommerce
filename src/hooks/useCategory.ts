@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Product, Category } from "@/types/product";
+import { Product, Category } from "@/types/types";
 import { productService } from "@/services/productService";
 
 export function useCategory(slug?: string) {

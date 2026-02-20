@@ -86,3 +86,9 @@ export interface FilterState {
   sort: SortOption;
   search: string;
 }
+
+export interface NavLink {
+  name: string;
+  href: string;
+  icon: React.ReactNode;
+}
