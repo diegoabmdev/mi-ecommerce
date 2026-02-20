@@ -40,7 +40,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
   return (
     <Link
-      href={`/products/${product.id}`}
+      href={`/product/${product.id}`}
       className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-all hover:shadow-lg"
     >
       {/* Wishlist Button */}
@@ -50,9 +50,8 @@ export function ProductCard({ product }: ProductCardProps) {
         aria-label={isFavorite ? "Quitar de favoritos" : "Agregar a favoritos"}
       >
         <Heart
-          className={`h-4 w-4 transition-colors ${
-            isFavorite ? "fill-red-500 text-red-500" : "text-muted-foreground"
-          }`}
+          className={`h-4 w-4 transition-colors ${isFavorite ? "fill-indigo-500 text-indigo-500" : "text-muted-foreground"
+            }`}
         />
       </button>
 

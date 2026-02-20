@@ -1,4 +1,4 @@
-import { ArrowLeft, ChevronRight, LayoutGrid, Loader2, Menu, X } from "lucide-react";
+import { ArrowLeft, ChevronRight, LayoutGrid, Loader2, Menu, Store, X } from "lucide-react";
 import { Button } from "../ui/button";
 import { Sheet, SheetClose, SheetContent, SheetTitle, SheetTrigger } from "../ui/sheet";
 import { AnimatePresence, motion } from "framer-motion";
@@ -56,9 +56,9 @@ export const MobileMenu = ({
             exit={{ x: -20, opacity: 0 }}
             className="flex flex-col h-full"
           >
-            <div className="px-6 py-6 border-b flex items-center justify-between bg-indigo-600 text-white">
-              <SheetTitle className="text-2xl font-black text-white">
-                NovaCart
+            <div className="px-6 py-6 border-b flex items-center justify-between bg-slate-950 text-white">
+              <SheetTitle className="text-2xl font-black italic tracking-tighter text-indigo-500 flex items-center uppercase">
+                <Store className="w-8 h-8 mr-4" /> Nova <span className="text-white">Cart</span>
               </SheetTitle>
               <SheetClose asChild>
                 <Button variant="ghost" size="icon" className="text-white">
@@ -107,15 +107,16 @@ export const MobileMenu = ({
             exit={{ x: 20, opacity: 0 }}
             className="flex flex-col h-full"
           >
-            <div className="px-4 py-6 border-b flex items-center gap-3">
+            <div className="px-4 py-6 border-b flex items-center gap-3 bg-slate-950">
               <Button
                 variant="ghost"
                 size="icon"
+                className="text-white"
                 onClick={() => setMenuView("main")}
               >
                 <ArrowLeft />
               </Button>
-              <SheetTitle className="text-xl font-bold">Categorías</SheetTitle>
+              <SheetTitle className="text-xl font-black italic tracking-tighter text-white uppercase">Categorías</SheetTitle>
             </div>
             <ScrollArea className="flex-1 p-2 pb-12 w-full h-full">
               {categories.map((cat: Category) => (
