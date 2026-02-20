@@ -71,7 +71,7 @@ function ProductsContent() {
                   variant="ghost"
                   size="sm"
                   onClick={clearFilters}
-                  className="text-xs text-muted-foreground hover:text-red-500 hover:bg-red-50 transition-colors"
+                  className="text-xs text-muted-foreground hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
                 >
                   <RotateCcw className="h-3 w-3 mr-1" /> Reiniciar
                 </Button>
@@ -85,7 +85,7 @@ function ProductsContent() {
                 <div className="flex flex-col gap-1 max-h-75 overflow-y-auto pr-2 custom-scrollbar">
                   <button
                     onClick={() => filters.setSelectedCategory("")}
-                    className={`text-left px-3 py-2 rounded-xl text-sm transition-all ${
+                    className={`cursor-pointer text-left px-3 py-2 rounded-xl text-sm transition-all ${
                       filters.selectedCategory === ""
                         ? "bg-indigo-600 text-white shadow-md shadow-indigo-200"
                         : "hover:bg-gray-100 text-gray-600"
@@ -106,7 +106,7 @@ function ProductsContent() {
                         <button
                           key={cat.slug}
                           onClick={() => filters.setSelectedCategory(cat.slug)}
-                          className={`text-left px-3 py-2 rounded-xl text-sm capitalize transition-all ${
+                          className={`cursor-pointer text-left px-3 py-2 rounded-xl text-sm capitalize transition-all ${
                             filters.selectedCategory === cat.slug
                               ? "bg-indigo-600 text-white shadow-md shadow-indigo-100"
                               : "hover:bg-gray-50 text-gray-600 border border-transparent hover:border-gray-100"
@@ -158,7 +158,7 @@ function ProductsContent() {
                     <button
                       key={rate}
                       onClick={() => filters.setMinRating(rate)}
-                      className={`flex-1 py-2 rounded-xl border text-xs font-medium transition-all ${
+                      className={`cursor-pointer flex-1 py-2 rounded-xl border text-xs font-medium transition-all ${
                         filters.minRating === rate
                           ? "bg-amber-50 border-amber-200 text-amber-700 shadow-sm"
                           : "bg-white border-gray-200 text-gray-500 hover:border-gray-300"

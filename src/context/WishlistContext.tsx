@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Product } from "@/types/types";
+import { useCart } from "./CartContext";
 
 interface WishlistContextType {
   wishlist: Product[];
@@ -9,6 +10,8 @@ interface WishlistContextType {
   isInWishlist: (id: number) => boolean;
   clearWishlist: () => void;
   totalFavorites: number;
+  isInitialized: boolean;
+  moveAllToCart: () => void;
 }
 
 const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
@@ -16,6 +19,7 @@ const WishlistContext = createContext<WishlistContextType | undefined>(undefined
 export const WishlistProvider = ({ children }: { children: ReactNode }) => {
   const [wishlist, setWishlist] = useState<Product[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
+  const { addToCart } = useCart();
 
   // Cargar de LocalStorage al montar
   useEffect(() => {
@@ -56,9 +60,16 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
 
   const totalFavorites = wishlist.length;
 
+  const moveAllToCart = () => {
+    wishlist.forEach((product) => {
+      addToCart(product);
+    });
+    setWishlist([]);
+  };
+
   return (
     <WishlistContext.Provider
-      value={{ wishlist, toggleWishlist, isInWishlist, clearWishlist, totalFavorites }}
+      value={{ wishlist, toggleWishlist, isInWishlist, clearWishlist, totalFavorites, isInitialized, moveAllToCart }}
     >
       {children}
     </WishlistContext.Provider>

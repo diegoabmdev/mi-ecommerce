@@ -3,7 +3,11 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactCompiler: true,
   images: {
-    domains: ["cdn.dummyjson.com", "images.unsplash.com", "cdn.abacus.ai"],
+    remotePatterns: [
+      { hostname: "cdn.dummyjson.com" },
+      { hostname: "images.unsplash.com" },
+      { hostname: "cdn.abacus.ai" },
+    ],
   },
 };
 
