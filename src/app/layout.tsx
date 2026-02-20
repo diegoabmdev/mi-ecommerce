@@ -7,6 +7,7 @@ import Navbar from "@/components/layout/Navbar";
 import { Toaster } from "@/components/ui/sonner";
 import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
+import { Suspense } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,7 +21,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "NovaCart – Tu tienda moderna",
-  description: "Proyecto portafolio e-commerce con Next.js, Zustand y DummyJSON",
+  description:
+    "Proyecto portafolio e-commerce con Next.js, Zustand y DummyJSON",
 };
 
 export default function RootLayout({
@@ -36,11 +38,13 @@ export default function RootLayout({
         <WishlistProvider>
           <CartProvider>
             <div className="relative flex min-h-screen flex-col">
-              <Navbar />
+              <Suspense
+                fallback={<div className="h-20 w-full bg-background" />}
+              >
+                <Navbar />
+              </Suspense>
 
-              <main className="flex-1">
-                {children}
-              </main>
+              <main className="flex-1">{children}</main>
 
               <footer className="border-t py-6 md:py-0">
                 <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
