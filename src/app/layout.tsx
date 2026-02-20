@@ -44,7 +44,9 @@ export default function RootLayout({
                 <Navbar />
               </Suspense>
 
-              <main className="flex-1">{children}</main>
+              <main className="flex-1">
+                <Suspense fallback={null}>{children}</Suspense>
+              </main>
 
               <footer className="border-t py-6 md:py-0">
                 <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">

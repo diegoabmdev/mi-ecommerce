@@ -19,9 +19,10 @@ export function ProductCard({ product }: ProductCardProps) {
   const { addToCart } = useCart();
 
   const currentPriceCLP = convertUSDtoCLP(product.price);
-  const originalPriceCLP = product.discountPercentage > 0
-    ? Math.round(currentPriceCLP / (1 - product.discountPercentage / 100))
-    : currentPriceCLP;
+  const originalPriceCLP =
+    product.discountPercentage > 0
+      ? Math.round(currentPriceCLP / (1 - product.discountPercentage / 100))
+      : currentPriceCLP;
 
   const isFavorite = isInWishlist(product.id);
 
@@ -35,10 +36,13 @@ export function ProductCard({ product }: ProductCardProps) {
     e?.preventDefault?.();
     e.stopPropagation();
     addToCart(product);
-  }
+  };
 
   return (
-    <Link href={`/products/${product.id}`} className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-all hover:shadow-lg">
+    <Link
+      href={`/products/${product.id}`}
+      className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-all hover:shadow-lg"
+    >
       {/* Wishlist Button */}
       <button
         onClick={handleWishlistClick}
@@ -46,8 +50,9 @@ export function ProductCard({ product }: ProductCardProps) {
         aria-label={isFavorite ? "Quitar de favoritos" : "Agregar a favoritos"}
       >
         <Heart
-          className={`h-4 w-4 transition-colors ${isFavorite ? "fill-red-500 text-red-500" : "text-muted-foreground"
-            }`}
+          className={`h-4 w-4 transition-colors ${
+            isFavorite ? "fill-red-500 text-red-500" : "text-muted-foreground"
+          }`}
         />
       </button>
 
@@ -94,11 +99,13 @@ export function ProductCard({ product }: ProductCardProps) {
 
         {/* Price */}
         <div className="mt-auto flex items-center gap-2">
-          <span className="text-base font-bold text-card-foreground">
+          <span
+            className={`text-base font-bold ${product.discountPercentage > 15 ? "text-indigo-600" : "text-card-foreground"}`}
+          >
             {formatCLP(currentPriceCLP)}
           </span>
           {product.discountPercentage > 5 && (
-            <span className="text-sm text-muted-foreground line-through">
+            <span className="text-sm text-muted-foreground line-through decoration-indigo-400/50">
               {formatCLP(originalPriceCLP)}
             </span>
           )}

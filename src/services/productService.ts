@@ -3,12 +3,15 @@ import { Product, ProductsResponse, Category } from "@/types/types";
 const BASE_URL = "https://dummyjson.com";
 
 export const productService = {
-  async getAllProducts(): Promise<Product[]> {
+  async getAllProducts(limit: number = 0): Promise<Product[]> {
     try {
-      const response = await fetch(`${BASE_URL}/products`);
+      const url = new URL(`${BASE_URL}/products`);
+      if (limit > 0) url.searchParams.append("limit", limit.toString());
+
+      const response = await fetch(url.toString());
       if (!response.ok) throw new Error("Error al obtener los productos");
 
-      const data = await response.json();
+      const data: ProductsResponse = await response.json();
       return data.products;
     } catch (error) {
       console.error("Product Service Error:", error);

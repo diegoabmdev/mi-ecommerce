@@ -1,28 +1,24 @@
-"use client";
-
-import { FeaturedProducts } from "@/components/hero/HeroSection";
-import { FeaturedProductsGrid } from "@/components/product/FeaturedProductsGrid";
-import { Button } from "@/components/ui/button";
+// app/page.tsx
+import { Hero } from "@/components/hero/HeroSection";
+import { CategoryGrid } from "@/components/hero/CategoryGrid";
+import { FlashSales } from "@/components/hero/FlashSales";
+import BenefitsSection from "@/components/hero/BenefitsSection";
+import Promotional from "@/components/hero/Promotional";
+import { BestSellers } from "@/components/hero/BestSellers";
+import NewsSection from "@/components/hero/NewsSection";
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-background">
-      <div className="bg-linear-to-r from-indigo-500 to-purple-600 text-white py-16 text-center">
-        <div className="container">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Bienvenido a NovaCart
-          </h1>
-          <p className="text-xl opacity-90 max-w-2xl mx-auto">
-            Descubre miles de productos con descuentos increíbles
-          </p>
-          <Button size="lg" variant="secondary" className="mt-8">
-            Explorar ahora
-          </Button>
-        </div>
+    <div className="min-h-screen bg-background pb-20">
+      <Hero />
+      <div className="max-w-340 px-4 lg:px-10 mx-auto space-y-20 mt-12">
+        <BenefitsSection />
+        <CategoryGrid />
+        <FlashSales />
+        <NewsSection />
+        <Promotional />
+        <BestSellers />
       </div>
-      <FeaturedProducts>
-        <FeaturedProductsGrid />
-      </FeaturedProducts>
     </div>
   );
 }
