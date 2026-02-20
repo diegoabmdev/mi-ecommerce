@@ -71,7 +71,7 @@ export default function Navbar() {
               href="/wishlist" 
               count={totalFavorites} 
               icon={<Heart className="h-6 w-6" />} 
-              hoverClass="hover:text-red-500 hover:bg-red-50"
+              hoverClass="hover:text-indigo-500 hover:bg-indigo-50"
             />
             {/* Carrito */}
             <NavBadgeIcon 

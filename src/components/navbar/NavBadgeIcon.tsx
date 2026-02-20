@@ -26,7 +26,7 @@ export const NavBadgeIcon = ({
       {icon}
       {count > 0 && (
         <Badge
-          className={`absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center border-2 border-background ${isCart ? "bg-indigo-600 text-white" : "bg-red-500"}`}
+          className={`absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center border-2 border-background ${isCart ? "bg-indigo-600 text-white" : "bg-indigo-500"}`}
         >
           {count}
         </Badge>

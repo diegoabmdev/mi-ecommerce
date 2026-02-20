@@ -84,10 +84,10 @@ export const MobileMenu = ({
                 <Separator className="my-4" />
                 <Button
                   variant="ghost"
-                  className="w-full justify-between px-4 py-6 text-lg font-bold"
+                  className="w-full justify-between px-4 py-8 text-lg font-bold hover:text-indigo-600 hover:bg-indigo-50 rounded-xl"
                   onClick={() => setMenuView("categories")}
                 >
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-4 ">
                     <LayoutGrid className="w-4 h-4" /> Categorías
                   </div>
                   {loading ? (
@@ -117,12 +117,12 @@ export const MobileMenu = ({
               </Button>
               <SheetTitle className="text-xl font-bold">Categorías</SheetTitle>
             </div>
-            <ScrollArea className="flex-1 p-2">
+            <ScrollArea className="flex-1 p-2 pb-12 w-full h-full">
               {categories.map((cat: Category) => (
                 <SheetClose asChild key={cat.slug}>
                   <Link
                     href={`/products?category=${cat.slug}`}
-                    className="flex items-center justify-between px-6 py-4 capitalize font-semibold"
+                    className="flex items-center justify-between px-6 py-4 capitalize font-semibold hover:text-indigo-600 hover:bg-indigo-50 rounded-xl"
                   >
                     {cat.name} <ChevronRight className="opacity-30" />
                   </Link>

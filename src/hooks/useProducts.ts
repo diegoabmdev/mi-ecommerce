@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Product } from "@/types/types";
 import { productService } from "@/services/productService";
 
-export function useProducts() {
+export function useProducts(limit: number = 0) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -13,7 +13,7 @@ export function useProducts() {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const data = await productService.getAllProducts();
+        const data = await productService.getAllProducts(limit);
         setProducts(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Error desconocido");
@@ -23,7 +23,7 @@ export function useProducts() {
     };
 
     fetchProducts();
-  }, []);
+  }, [limit]);
 
   return { products, loading, error };
 }

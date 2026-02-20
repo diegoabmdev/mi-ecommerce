@@ -7,6 +7,7 @@ import Navbar from "@/components/layout/Navbar";
 import { Toaster } from "@/components/ui/sonner";
 import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
+import { Suspense } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,7 +40,7 @@ export default function RootLayout({
               <Navbar />
 
               <main className="flex-1">
-                {children}
+                <Suspense fallback={null}>{children}</Suspense>
               </main>
 
               <footer className="border-t py-6 md:py-0">
