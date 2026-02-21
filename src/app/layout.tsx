@@ -10,6 +10,7 @@ import { WishlistProvider } from "@/context/WishlistContext";
 import { Suspense } from "react";
 import Footer from "@/components/footer/Footer";
 import { ScrollToTop } from "@/components/footer/ScrollToTop";
+import { UserProvider } from "@/context/UserContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,25 +38,27 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground`}
       >
-        <CartProvider>
-          <WishlistProvider>
-            <div className="relative flex min-h-screen flex-col">
-              <Suspense
-                fallback={<div className="h-20 w-full bg-background" />}
-              >
-                <Navbar />
-              </Suspense>
+        <UserProvider>
+          <CartProvider>
+            <WishlistProvider>
+              <div className="relative flex min-h-screen flex-col">
+                <Suspense
+                  fallback={<div className="h-20 w-full bg-background" />}
+                >
+                  <Navbar />
+                </Suspense>
 
-              <main className="flex-1">
-                <Suspense fallback={null}>{children}</Suspense>
-              </main>
+                <main className="flex-1">
+                  <Suspense fallback={null}>{children}</Suspense>
+                </main>
 
-              <Footer />
-            </div>
-          </WishlistProvider>
-        </CartProvider>
+                <Footer />
+              </div>
+            </WishlistProvider>
+          </CartProvider>
+        </UserProvider>
         <ScrollToTop />
-        <Toaster richColors position="top-right" />
+        <Toaster richColors position="bottom-right" />
       </body>
     </html>
   );
