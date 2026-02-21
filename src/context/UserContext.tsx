@@ -20,6 +20,8 @@ interface UserContextType {
   logout: () => void;
   addAddress: (data: Omit<Address, "id" | "isDefault">) => void;
   deleteAddress: (id: string) => void;
+  updateAddress: (id: string, data: Partial<Address>) => void;
+  setDefaultAddress: (id: string) => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -96,6 +98,29 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     [setAddresses],
   );
 
+  const updateAddress = useCallback(
+    (id: string, data: Partial<Address>) => {
+      setAddresses((prev) =>
+        prev.map((addr) => (addr.id === id ? { ...addr, ...data } : addr)),
+      );
+      toast.success("Dirección actualizada");
+    },
+    [setAddresses],
+  );
+
+  const setDefaultAddress = useCallback(
+    (id: string) => {
+      setAddresses((prev) =>
+        prev.map((addr) => ({
+          ...addr,
+          isDefault: addr.id === id, // Solo la seleccionada será true
+        })),
+      );
+      toast.success("Dirección predeterminada actualizada");
+    },
+    [setAddresses],
+  );
+
   const contextValue = useMemo(
     () => ({
       user,
@@ -105,8 +130,20 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       logout,
       addAddress,
       deleteAddress,
+      updateAddress,
+      setDefaultAddress,
     }),
-    [user, addresses, isLoading, login, logout, addAddress, deleteAddress],
+    [
+      user,
+      addresses,
+      isLoading,
+      login,
+      logout,
+      addAddress,
+      deleteAddress,
+      updateAddress,
+      setDefaultAddress,
+    ],
   );
 
   return (
