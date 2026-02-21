@@ -1,3 +1,4 @@
+//Productos
 export interface Product {
   id: number;
   title: string;
@@ -61,15 +62,15 @@ export interface ProductMeta {
   barcode: string;
   qrCode: string;
 }
+//------------------------------
 
-export interface User {
-  id: number;
-  username: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  image: string;
-  token: string;
+//Filtros
+export interface FilterState {
+  category: string;
+  brand: string;
+  priceRange: [number, number];
+  sort: SortOption;
+  search: string;
 }
 
 export type SortOption =
@@ -79,16 +80,92 @@ export type SortOption =
   | "rating"
   | "title";
 
-export interface FilterState {
-  category: string;
-  brand: string;
-  priceRange: [number, number];
-  sort: SortOption;
-  search: string;
-}
-
+//Navbar
 export interface NavLink {
   name: string;
   href: string;
   icon: React.ReactNode;
+}
+
+//User/Auth
+export interface LoginCredentials {
+  username: string;
+  password: string;
+  expiresInMins?: number;
+}
+
+export interface RegisterData {
+  firstName: string;
+  lastName: string;
+  username: string;
+  email: string;
+  password?: string;
+  age?: number;
+}
+
+export interface LoginResponse extends AuthUser {
+  accessToken: string;
+  refreshToken: string;
+}
+
+export interface AuthUser {
+  id: number;
+  username: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  gender: "female" | "male" | "other" | "";
+  image: string;
+}
+
+export interface User extends AuthUser {
+  maidenName?: string;
+  age?: number;
+  phone?: string;
+  birthDate?: string;
+  bloodGroup?: string;
+  height?: number | null;
+  weight?: number | null;
+  eyeColor?: string;
+  ip?: string;
+  address?: FullAddress;
+  macAddress?: string;
+  university?: string;
+  bank?: Bank;
+  ein?: string;
+  ssn?: string;
+  userAgent?: string;
+  role: "admin" | "user" | "moderator";
+}
+
+export interface FullAddress {
+  address: string;
+  city: string;
+  state: string;
+  stateCode: string;
+  postalCode: string;
+  coordinates: {
+    lat: number | null;
+    lng: number | null;
+  };
+  country: string;
+}
+
+export interface Address {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+  isDefault: boolean;
+}
+
+export interface Bank {
+  cardExpire: string;
+  cardNumber: string;
+  cardType: string;
+  currency: string;
+  iban: string;
 }

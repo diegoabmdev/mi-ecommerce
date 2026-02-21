@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
       { hostname: "cdn.dummyjson.com" },
       { hostname: "images.unsplash.com" },
       { hostname: "cdn.abacus.ai" },
+      { hostname: "dummyjson.com" },
     ],
   },
 };
