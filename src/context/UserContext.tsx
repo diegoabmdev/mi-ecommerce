@@ -1,4 +1,5 @@
 "use client";
+
 import {
   createContext,
   useContext,
@@ -11,6 +12,9 @@ import { authService } from "@/services/authService";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { User, Address, LoginCredentials } from "@/types/types";
 import { toast } from "sonner";
+
+const AUTH_TOKEN_KEY = "novacart_token";
+const ADDRESSES_KEY = "novacart_addresses";
 
 interface UserContextType {
   user: User | null;
@@ -30,13 +34,13 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [addresses, setAddresses] = useLocalStorage<Address[]>(
-    "novacart_addresses",
+    ADDRESSES_KEY,
     [],
   );
 
   useEffect(() => {
     const initAuth = async () => {
-      const token = localStorage.getItem("novacart_token");
+      const token = localStorage.getItem(AUTH_TOKEN_KEY);
       if (!token) {
         setIsLoading(false);
         return;
@@ -46,7 +50,8 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         const userData = await authService.getCurrentUser(token);
         setUser(userData);
       } catch {
-        localStorage.removeItem("novacart_token");
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+        setUser(null);
       } finally {
         setIsLoading(false);
       }
@@ -58,10 +63,10 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const login = useCallback(async (credentials: LoginCredentials) => {
     try {
       const response = await authService.login(credentials);
-      localStorage.setItem("novacart_token", response.accessToken);
+      localStorage.setItem(AUTH_TOKEN_KEY, response.accessToken);
       setUser(response as unknown as User);
       toast.success(`Bienvenido de vuelta, ${response.firstName}`);
-    } catch (error: unknown) {
+    } catch (error) {
       const message =
         error instanceof Error ? error.message : "Error al iniciar sesión";
       toast.error(message);
@@ -71,31 +76,46 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = useCallback(() => {
     setUser(null);
-    localStorage.removeItem("novacart_token");
+    localStorage.removeItem(AUTH_TOKEN_KEY);
     toast.info("Has cerrado sesión");
   }, []);
 
   const addAddress = useCallback(
     (data: Omit<Address, "id" | "isDefault">) => {
       setAddresses((prev) => {
-        const newAddr: Address = {
+        const newAddress: Address = {
           ...data,
           id: crypto.randomUUID(),
-          isDefault: prev.length === 0,
+          isDefault: prev.length === 0, // Primera dirección es default
         };
-        return [...prev, newAddr];
+        return [...prev, newAddress];
       });
-      toast.success("Dirección guardada correctamente");
+      toast.success("Dirección añadida");
     },
     [setAddresses],
   );
 
-  const deleteAddress = useCallback(
+const deleteAddress = useCallback(
     (id: string) => {
-      setAddresses((prev) => prev.filter((addr) => addr.id !== id));
-      toast.error("Dirección eliminada");
+      setAddresses((prev) => {
+        if (prev.length <= 1) {
+          toast.error("Debes mantener al menos una dirección");
+          return prev;
+        }
+
+        const addressToDelete = prev.find((addr) => addr.id === id);
+
+        if (addressToDelete?.isDefault) {
+          toast.error("No puedes eliminar tu dirección predeterminada");
+          return prev;
+        }
+
+        const filtered = prev.filter((addr) => addr.id !== id);
+        toast.error("Dirección eliminada");
+        return filtered;
+      });
     },
-    [setAddresses],
+    [setAddresses]
   );
 
   const updateAddress = useCallback(
@@ -103,7 +123,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       setAddresses((prev) =>
         prev.map((addr) => (addr.id === id ? { ...addr, ...data } : addr)),
       );
-      toast.success("Dirección actualizada");
+      toast.success("Cambios guardados");
     },
     [setAddresses],
   );
@@ -113,15 +133,15 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       setAddresses((prev) =>
         prev.map((addr) => ({
           ...addr,
-          isDefault: addr.id === id, // Solo la seleccionada será true
+          isDefault: addr.id === id,
         })),
       );
-      toast.success("Dirección predeterminada actualizada");
+      toast.success("Dirección principal actualizada");
     },
     [setAddresses],
   );
 
-  const contextValue = useMemo(
+  const value = useMemo(
     () => ({
       user,
       addresses,
@@ -146,13 +166,13 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     ],
   );
 
-  return (
-    <UserContext.Provider value={contextValue}>{children}</UserContext.Provider>
-  );
+  return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 };
 
 export const useUser = () => {
   const context = useContext(UserContext);
-  if (!context) throw new Error("useUser debe usarse dentro de UserProvider");
+  if (!context) {
+    throw new Error("useUser debe ser usado dentro de un UserProvider");
+  }
   return context;
 };
