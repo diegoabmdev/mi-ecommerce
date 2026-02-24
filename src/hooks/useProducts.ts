@@ -1,29 +1,17 @@
+// src/hooks/useProducts.ts
 "use client";
 
-import { useState, useEffect } from "react";
-import { Product } from "@/types/types";
+import { useEffect } from "react";
 import { productService } from "@/services/productService";
+import { useAsync } from "./useAsync";
+import { Product } from "@/types/types";
 
 export function useProducts(limit: number = 0) {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: products, loading, error, execute } = useAsync<Product[]>(`products-limit-${limit}`);
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true);
-        const data = await productService.getAllProducts(limit);
-        setProducts(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Error desconocido");
-      } finally {
-        setLoading(false);
-      }
-    };
+    execute(() => productService.getAllProducts(limit));
+  }, [limit, execute]);
 
-    fetchProducts();
-  }, [limit]);
-
-  return { products, loading, error };
+  return { products: products ?? [], loading, error };
 }
