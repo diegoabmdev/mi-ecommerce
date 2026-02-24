@@ -1,8 +1,19 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode, useEffect, useMemo } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+  useMemo,
+  useCallback,
+} from "react";
 import { Product, CartItem } from "@/types/types";
 import { convertUSDtoCLP } from "@/lib/utils";
+import { toast } from "sonner";
+
+const CART_STORAGE_KEY = "novacart_storage";
 
 interface CartContextType {
   cart: CartItem[];
@@ -21,89 +32,105 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Cargar datos de localStorage solo una vez al montar
   useEffect(() => {
-    const savedCart = localStorage.getItem("cart_storage");
+    const savedCart = localStorage.getItem(CART_STORAGE_KEY);
     if (savedCart) {
       try {
         setCart(JSON.parse(savedCart));
       } catch (error) {
-        console.error("Error al cargar carrito inicial", error);
+        console.error("Cart hydration fallo", error);
       }
     }
     setIsLoaded(true);
   }, []);
 
-  // Guardar en localStorage solo cuando el carrito cambie Y ya esté cargado
   useEffect(() => {
     if (isLoaded) {
-      localStorage.setItem("cart_storage", JSON.stringify(cart));
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
     }
   }, [cart, isLoaded]);
 
-  const addToCart = (product: Product) => {
-    setCart((prevCart) => {
-      const existingItem = prevCart.find((item) => item.product.id === product.id);
-      if (existingItem) {
-        return prevCart.map((item) =>
+  const addToCart = useCallback((product: Product) => {
+    setCart((prev) => {
+      const existing = prev.find((item) => item.product.id === product.id);
+
+      if (existing) {
+        return prev.map((item) =>
           item.product.id === product.id
             ? { ...item, quantity: item.quantity + 1 }
-            : item
+            : item,
         );
       }
-      return [...prevCart, { product, quantity: 1 }];
+
+      return [...prev, { product, quantity: 1 }];
     });
-  };
+  }, []);
 
-  const removeFromCart = (id: number) => {
-    setCart((prevCart) => prevCart.filter((item) => item.product.id !== id));
-  };
+  const removeFromCart = useCallback((id: number) => {
+    setCart((prev) => prev.filter((item) => item.product.id !== id));
+  }, []);
 
-  const updateQuantity = (id: number, quantity: number) => {
-    if (quantity <= 0) {
-      removeFromCart(id);
-      return;
-    }
-    setCart((prevCart) =>
-      prevCart.map((item) =>
-        item.product.id === id ? { ...item, quantity } : item
-      )
-    );
-  };
-
-  const clearCart = () => setCart([]);
-
-  const totalItems = useMemo(() => 
-    cart.reduce((acc, item) => acc + item.quantity, 0), 
-  [cart]);
-
-  const totalPrice = useMemo(() =>
-    cart.reduce((acc, item) => {
-      const priceInCLP = convertUSDtoCLP(item.product.price);
-      return acc + (priceInCLP * item.quantity);
-    }, 0),
-  [cart]);
-
-  return (
-    <CartContext.Provider
-      value={{
-        cart,
-        addToCart,
-        removeFromCart,
-        updateQuantity,
-        clearCart,
-        totalItems,
-        totalPrice,
-        isLoaded
-      }}
-    >
-      {children}
-    </CartContext.Provider>
+  const updateQuantity = useCallback(
+    (id: number, quantity: number) => {
+      if (quantity <= 0) {
+        removeFromCart(id);
+        return;
+      }
+      setCart((prev) =>
+        prev.map((item) =>
+          item.product.id === id ? { ...item, quantity } : item,
+        ),
+      );
+    },
+    [removeFromCart],
   );
+
+  const clearCart = useCallback(() => {
+    setCart([]);
+  }, []);
+
+  const totalItems = useMemo(
+    () => cart.reduce((acc, item) => acc + item.quantity, 0),
+    [cart],
+  );
+
+  const totalPrice = useMemo(
+    () =>
+      cart.reduce((acc, item) => {
+        const itemPriceCLP = convertUSDtoCLP(item.product.price);
+        return acc + itemPriceCLP * item.quantity;
+      }, 0),
+    [cart],
+  );
+
+  const value = useMemo(
+    () => ({
+      cart,
+      addToCart,
+      removeFromCart,
+      updateQuantity,
+      clearCart,
+      totalItems,
+      totalPrice,
+      isLoaded,
+    }),
+    [
+      cart,
+      addToCart,
+      removeFromCart,
+      updateQuantity,
+      clearCart,
+      totalItems,
+      totalPrice,
+      isLoaded,
+    ],
+  );
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };
 
 export const useCart = () => {
   const context = useContext(CartContext);
-  if (!context) throw new Error("useCart debe usarse dentro de un CartProvider");
+  if (!context) throw new Error("useCart must be used within a CartProvider");
   return context;
 };

@@ -1,8 +1,19 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+  useCallback,
+  useMemo,
+} from "react";
 import { Product } from "@/types/types";
 import { useCart } from "./CartContext";
+import { toast } from "sonner";
+
+const WISHLIST_STORAGE_KEY = "novacart_wishlist";
 
 interface WishlistContextType {
   wishlist: Product[];
@@ -14,63 +25,95 @@ interface WishlistContextType {
   moveAllToCart: () => void;
 }
 
-const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
+const WishlistContext = createContext<WishlistContextType | undefined>(
+  undefined,
+);
 
 export const WishlistProvider = ({ children }: { children: ReactNode }) => {
-  const [wishlist, setWishlist] = useState<Product[]>([]);
-  const [isInitialized, setIsInitialized] = useState(false);
   const { addToCart } = useCart();
 
-  // Cargar de LocalStorage al montar
-  useEffect(() => {
-    const savedWishlist = localStorage.getItem("wishlist_storage");
-    if (savedWishlist) {
-      try {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setWishlist(JSON.parse(savedWishlist));
-      } catch (e) {
-        console.error("Error cargando wishlist", e);
+  const [wishlist, setWishlist] = useState<Product[]>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem(WISHLIST_STORAGE_KEY);
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.error("Error al analizar el localstorage de wishlist", e);
+          return [];
+        }
       }
     }
-    setIsInitialized(true);
+    return [];
+  });
+
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  useEffect(() => {
+    Promise.resolve().then(() => setIsInitialized(true));
   }, []);
 
-  // Guardar en LocalStorage al cambiar
   useEffect(() => {
     if (isInitialized) {
-      localStorage.setItem("wishlist_storage", JSON.stringify(wishlist));
+      localStorage.setItem(WISHLIST_STORAGE_KEY, JSON.stringify(wishlist));
     }
   }, [wishlist, isInitialized]);
 
-  const toggleWishlist = (product: Product) => {
+  const toggleWishlist = useCallback((product: Product) => {
     setWishlist((prev) => {
-      const exists = prev.find((item) => item.id === product.id);
+      const exists = prev.some((item) => item.id === product.id);
       if (exists) {
-        // Si existe, lo quitamos
         return prev.filter((item) => item.id !== product.id);
       }
-      // Si no existe, lo agregamos
       return [...prev, product];
     });
-  };
+  }, []);
 
-  const isInWishlist = (id: number) => wishlist.some((item) => item.id === id);
+  const isInWishlist = useCallback(
+    (id: number) => wishlist.some((item) => item.id === id),
+    [wishlist],
+  );
 
-  const clearWishlist = () => setWishlist([]);
+  const clearWishlist = useCallback(() => {
+    setWishlist([]);
+  }, []);
 
-  const totalFavorites = wishlist.length;
+  const moveAllToCart = useCallback(() => {
+    if (wishlist.length === 0) return;
 
-  const moveAllToCart = () => {
     wishlist.forEach((product) => {
       addToCart(product);
     });
+
     setWishlist([]);
-  };
+    toast.success("Todos los productos movidos al carrito");
+  }, [wishlist, addToCart]);
+
+  const totalFavorites = wishlist.length;
+
+  const value = useMemo(
+    () => ({
+      wishlist,
+      toggleWishlist,
+      isInWishlist,
+      clearWishlist,
+      totalFavorites,
+      isInitialized,
+      moveAllToCart,
+    }),
+    [
+      wishlist,
+      toggleWishlist,
+      isInWishlist,
+      clearWishlist,
+      totalFavorites,
+      isInitialized,
+      moveAllToCart,
+    ],
+  );
 
   return (
-    <WishlistContext.Provider
-      value={{ wishlist, toggleWishlist, isInWishlist, clearWishlist, totalFavorites, isInitialized, moveAllToCart }}
-    >
+    <WishlistContext.Provider value={value}>
       {children}
     </WishlistContext.Provider>
   );
@@ -78,6 +121,7 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
 
 export const useWishlist = () => {
   const context = useContext(WishlistContext);
-  if (!context) throw new Error("useWishlist debe usarse dentro de WishlistProvider");
+  if (!context)
+    throw new Error("useWishlist debe usarse dentro de WishlistProvider");
   return context;
 };
