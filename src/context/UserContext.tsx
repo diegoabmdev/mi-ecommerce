@@ -7,6 +7,7 @@ import {
   useEffect,
   useCallback,
   useMemo,
+  useRef,
 } from "react";
 import { authService } from "@/services/authService";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
@@ -33,16 +34,23 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
   const [addresses, setAddresses] = useLocalStorage<Address[]>(
     ADDRESSES_KEY,
     [],
   );
 
+  // 2. Protege el efecto de inicialización con una Ref para evitar re-ejecuciones accidentales
+  const hasFetched = useRef(false);
+
   useEffect(() => {
+    if (hasFetched.current) return;
+
     const initAuth = async () => {
       const token = localStorage.getItem(AUTH_TOKEN_KEY);
       if (!token) {
         setIsLoading(false);
+        hasFetched.current = true;
         return;
       }
 
@@ -54,6 +62,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(null);
       } finally {
         setIsLoading(false);
+        hasFetched.current = true;
       }
     };
 
@@ -64,12 +73,11 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const response = await authService.login(credentials);
       localStorage.setItem(AUTH_TOKEN_KEY, response.accessToken);
+      // Asegúrate de que response tenga la forma de User o mapealo correctamente
       setUser(response as unknown as User);
       toast.success(`Bienvenido de vuelta, ${response.firstName}`);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Error al iniciar sesión";
-      toast.error(message);
+    } catch (error: any) {
+      toast.error(error.message || "Error al iniciar sesión");
       throw error;
     }
   }, []);
@@ -80,13 +88,14 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     toast.info("Has cerrado sesión");
   }, []);
 
+  // 3. Optimizamos las funciones de direcciones envolviéndolas correctamente
   const addAddress = useCallback(
     (data: Omit<Address, "id" | "isDefault">) => {
       setAddresses((prev) => {
         const newAddress: Address = {
           ...data,
           id: crypto.randomUUID(),
-          isDefault: prev.length === 0, // Primera dirección es default
+          isDefault: prev.length === 0,
         };
         return [...prev, newAddress];
       });
@@ -95,27 +104,23 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     [setAddresses],
   );
 
-const deleteAddress = useCallback(
+  const deleteAddress = useCallback(
     (id: string) => {
       setAddresses((prev) => {
         if (prev.length <= 1) {
           toast.error("Debes mantener al menos una dirección");
           return prev;
         }
-
         const addressToDelete = prev.find((addr) => addr.id === id);
-
         if (addressToDelete?.isDefault) {
           toast.error("No puedes eliminar tu dirección predeterminada");
           return prev;
         }
-
-        const filtered = prev.filter((addr) => addr.id !== id);
         toast.error("Dirección eliminada");
-        return filtered;
+        return prev.filter((addr) => addr.id !== id);
       });
     },
-    [setAddresses]
+    [setAddresses],
   );
 
   const updateAddress = useCallback(
@@ -141,6 +146,7 @@ const deleteAddress = useCallback(
     [setAddresses],
   );
 
+  // 4. El valor del contexto debe ser lo más estable posible
   const value = useMemo(
     () => ({
       user,
@@ -171,8 +177,7 @@ const deleteAddress = useCallback(
 
 export const useUser = () => {
   const context = useContext(UserContext);
-  if (!context) {
+  if (!context)
     throw new Error("useUser debe ser usado dentro de un UserProvider");
-  }
   return context;
 };

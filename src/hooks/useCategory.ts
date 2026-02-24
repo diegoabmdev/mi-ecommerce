@@ -1,36 +1,34 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Product, Category } from "@/types/types";
+import { useEffect, useRef } from "react";
 import { productService } from "@/services/productService";
+import { useAsync } from "./useAsync";
+import { Product, Category } from "@/types/types";
+import { cacheStore } from "@/lib/cacheStore";
 
 export function useCategory(slug?: string) {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const key = slug ? `category-${slug}` : "categories-all";
+  const { data, loading, error, execute } = useAsync<any>(key);
+  const lastKey = useRef<string | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        if (slug) {
-          const data = await productService.getProductsByCategory(slug);
-          setProducts(data);
-        } else {
-          const data = await productService.getCategories();
-          setCategories(data);
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Error desconocido");
-      } finally {
-        setLoading(false);
+    if (lastKey.current === key) return;
+
+    const cachedData = cacheStore.get(key);
+    if (!cachedData) {
+      if (slug) {
+        execute(() => productService.getProductsByCategory(slug));
+      } else {
+        execute(() => productService.getCategories());
       }
-    };
+      lastKey.current = key;
+    }
+  }, [slug, execute, key]);
 
-    fetchData();
-  }, [slug]);
-
-  return { products, categories, loading, error };
+  return {
+    products: slug ? ((data as Product[]) ?? []) : [],
+    categories: !slug ? ((data as Category[]) ?? []) : [],
+    loading,
+    error,
+  };
 }
