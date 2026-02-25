@@ -1,3 +1,4 @@
+// src/context/UserContext.tsx
 "use client";
 
 import {
@@ -11,11 +12,12 @@ import {
 } from "react";
 import { authService } from "@/services/authService";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { User, Address, LoginCredentials } from "@/types/types";
+import { User, Address, LoginCredentials, Order } from "@/types/types";
 import { toast } from "sonner";
 
 const AUTH_TOKEN_KEY = "novacart_token";
 const ADDRESSES_KEY = "novacart_addresses";
+const ORDERS_KEY = "novacart_orders";
 
 interface UserContextType {
   user: User | null;
@@ -27,6 +29,8 @@ interface UserContextType {
   deleteAddress: (id: string) => void;
   updateAddress: (id: string, data: Partial<Address>) => void;
   setDefaultAddress: (id: string) => void;
+  orders: Order[];
+  addOrder: (order: Order) => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -34,14 +38,32 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [orders, setOrders] = useLocalStorage<Order[]>(ORDERS_KEY, []);
 
   const [addresses, setAddresses] = useLocalStorage<Address[]>(
     ADDRESSES_KEY,
     [],
   );
 
-  // 2. Protege el efecto de inicialización con una Ref para evitar re-ejecuciones accidentales
   const hasFetched = useRef(false);
+
+  const createDefaultAddress = (userData: User): Address => ({
+    id: "default-api",
+    name: "Casa (DummyJSON)",
+    address: userData.address?.address || "Calle Principal 123",
+    city: userData.address?.city || "Santiago",
+    state: userData.address?.state || "Metropolitana",
+    postalCode: userData.address?.postalCode || "123456",
+    country: userData.address?.country || "Chile",
+    isDefault: true,
+  });
+
+  const addOrder = useCallback(
+    (order: Order) => {
+      setOrders((prev) => [order, ...prev]);
+    },
+    [setOrders],
+  );
 
   useEffect(() => {
     if (hasFetched.current) return;
@@ -57,9 +79,15 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const userData = await authService.getCurrentUser(token);
         setUser(userData);
-      } catch {
+
+        const stored = localStorage.getItem(ADDRESSES_KEY);
+        if (!stored || JSON.parse(stored).length === 0) {
+          const defaultAddr = createDefaultAddress(userData);
+          setAddresses([defaultAddr]);
+        }
+      } catch (error) {
+        console.error("Auth init error:", error);
         localStorage.removeItem(AUTH_TOKEN_KEY);
-        setUser(null);
       } finally {
         setIsLoading(false);
         hasFetched.current = true;
@@ -67,38 +95,52 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     initAuth();
-  }, []);
+  }, [setAddresses]);
 
-  const login = useCallback(async (credentials: LoginCredentials) => {
-    try {
-      const response = await authService.login(credentials);
-      localStorage.setItem(AUTH_TOKEN_KEY, response.accessToken);
-      // Asegúrate de que response tenga la forma de User o mapealo correctamente
-      setUser(response as unknown as User);
-      toast.success(`Bienvenido de vuelta, ${response.firstName}`);
-    } catch (error: any) {
-      toast.error(error.message || "Error al iniciar sesión");
-      throw error;
-    }
-  }, []);
+  const login = useCallback(
+    async (credentials: LoginCredentials) => {
+      try {
+        const response = await authService.login(credentials);
+
+        localStorage.setItem(AUTH_TOKEN_KEY, response.accessToken);
+
+        const userData = response as unknown as User;
+
+        const storedAddresses = localStorage.getItem(ADDRESSES_KEY);
+        const parsedAddresses = storedAddresses
+          ? JSON.parse(storedAddresses)
+          : [];
+
+        if (parsedAddresses.length === 0) {
+          const defaultAddr = createDefaultAddress(userData);
+          localStorage.setItem(ADDRESSES_KEY, JSON.stringify([defaultAddr]));
+          setAddresses([defaultAddr]);
+        }
+
+        setUser(userData);
+        toast.success(`Bienvenido, ${userData.firstName}`);
+      } catch (error: any) {
+        toast.error(error.message || "Error al iniciar sesión");
+        throw error;
+      }
+    },
+    [setAddresses],
+  );
 
   const logout = useCallback(() => {
     setUser(null);
     localStorage.removeItem(AUTH_TOKEN_KEY);
-    toast.info("Has cerrado sesión");
-  }, []);
+    setAddresses([]);
+    localStorage.removeItem(ADDRESSES_KEY);
+    toast.info("Sesión cerrada");
+  }, [setAddresses]);
 
-  // 3. Optimizamos las funciones de direcciones envolviéndolas correctamente
   const addAddress = useCallback(
     (data: Omit<Address, "id" | "isDefault">) => {
-      setAddresses((prev) => {
-        const newAddress: Address = {
-          ...data,
-          id: crypto.randomUUID(),
-          isDefault: prev.length === 0,
-        };
-        return [...prev, newAddress];
-      });
+      setAddresses((prev) => [
+        ...prev,
+        { ...data, id: crypto.randomUUID(), isDefault: prev.length === 0 },
+      ]);
       toast.success("Dirección añadida");
     },
     [setAddresses],
@@ -106,19 +148,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
 
   const deleteAddress = useCallback(
     (id: string) => {
-      setAddresses((prev) => {
-        if (prev.length <= 1) {
-          toast.error("Debes mantener al menos una dirección");
-          return prev;
-        }
-        const addressToDelete = prev.find((addr) => addr.id === id);
-        if (addressToDelete?.isDefault) {
-          toast.error("No puedes eliminar tu dirección predeterminada");
-          return prev;
-        }
-        toast.error("Dirección eliminada");
-        return prev.filter((addr) => addr.id !== id);
-      });
+      setAddresses((prev) => prev.filter((a) => a.id !== id));
     },
     [setAddresses],
   );
@@ -126,9 +156,8 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const updateAddress = useCallback(
     (id: string, data: Partial<Address>) => {
       setAddresses((prev) =>
-        prev.map((addr) => (addr.id === id ? { ...addr, ...data } : addr)),
+        prev.map((a) => (a.id === id ? { ...a, ...data } : a)),
       );
-      toast.success("Cambios guardados");
     },
     [setAddresses],
   );
@@ -136,17 +165,12 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const setDefaultAddress = useCallback(
     (id: string) => {
       setAddresses((prev) =>
-        prev.map((addr) => ({
-          ...addr,
-          isDefault: addr.id === id,
-        })),
+        prev.map((a) => ({ ...a, isDefault: a.id === id })),
       );
-      toast.success("Dirección principal actualizada");
     },
     [setAddresses],
   );
 
-  // 4. El valor del contexto debe ser lo más estable posible
   const value = useMemo(
     () => ({
       user,
@@ -158,6 +182,8 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       deleteAddress,
       updateAddress,
       setDefaultAddress,
+      orders,
+      addOrder,
     }),
     [
       user,
@@ -169,6 +195,8 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       deleteAddress,
       updateAddress,
       setDefaultAddress,
+      orders,
+      addOrder,
     ],
   );
 

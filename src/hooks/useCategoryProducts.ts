@@ -11,14 +11,10 @@ export function useCategoryProducts(slug: string) {
   const cacheKey = `category-products-${slug}`;
   const { data, loading, error, execute } = useAsync<Product[]>(cacheKey);
   
-  // Usamos una ref para evitar revalidaciones infinitas en el mismo montaje
   const lastFetchedSlug = useRef<string | null>(null);
 
   useEffect(() => {
     if (!slug || lastFetchedSlug.current === slug) return;
-
-    // Solo ejecutar si NO hay datos en caché 
-    // o si queremos forzar una revalidación manual.
     const cachedData = cacheStore.get(cacheKey);
     
     if (!cachedData) {

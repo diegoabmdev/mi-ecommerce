@@ -63,7 +63,7 @@ export default function LoginPage() {
               </Link>
             </div>
             <AuthInput
-              label="" // Label oculto porque usamos el personalizado arriba
+              label=""
               icon={Lock}
               type="password"
               placeholder="••••••••"
