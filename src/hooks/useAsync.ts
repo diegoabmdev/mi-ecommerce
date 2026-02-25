@@ -10,7 +10,6 @@ export function useAsync<T>(cacheKey?: string) {
   const [error, setError] = useState<string | null>(null);
 
   const execute = useCallback(async (asyncFunction: () => Promise<T>) => {
-    // Si ya tenemos datos en caché para esta key, no activamos loading (Silent Refresh)
     const cachedData = cacheKey ? cacheStore.get(cacheKey) : null;
     if (cachedData) {
       setData(cachedData);

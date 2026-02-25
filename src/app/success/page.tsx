@@ -1,35 +1,62 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, ArrowRight, Package, ReceiptText } from "lucide-react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { formatCLP } from "@/lib/utils";
 import Image from "next/image";
+import { useUser } from "@/context/UserContext";
 
 export default function SuccessPage() {
   const { cart, clearCart, totalPrice } = useCart();
+  const { addOrder } = useUser();
   const searchParams = useSearchParams();
-  const paymentId = searchParams.get("payment_id");
-
-  // Guardamos una copia local para mostrarla después de vaciar el contexto
   const [purchasedItems, setPurchasedItems] = useState<any[]>([]);
   const [orderTotal, setOrderTotal] = useState(0);
+  const [mounted, setMounted] = useState(false);
+  const hasProcessed = useRef(false);
+  const router = useRouter();
+  const [finalPaymentId, setFinalPaymentId] = useState("");
+  const paymentId =
+    searchParams.get("payment_id") ||
+    `MP-${Math.floor(Math.random() * 1000000)}`;
 
   useEffect(() => {
-    if (cart.length > 0) {
-      setPurchasedItems([...cart]);
-      setOrderTotal(totalPrice);
+    setMounted(true);
+  }, []);
 
-      const timer = setTimeout(() => {
-        clearCart();
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [cart, clearCart, totalPrice]);
+  useEffect(() => {
+    if (!mounted || hasProcessed.current || cart.length === 0) return;
+    const urlId = searchParams.get("payment_id");
+    const uniqueId = urlId || `NC-TEMP-${Date.now()}`;
+
+    setFinalPaymentId(uniqueId);
+    setPurchasedItems([...cart]);
+    setOrderTotal(totalPrice);
+
+    addOrder({
+      id: uniqueId,
+      date: new Date().toLocaleDateString("es-CL", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }),
+      status: "Pagado",
+      total: totalPrice,
+      itemsCount: cart.reduce((acc, item) => acc + item.quantity, 0),
+      items: [...cart],
+    });
+
+    hasProcessed.current = true;
+    window.history.replaceState({}, "", "/success");
+
+    const timer = setTimeout(() => clearCart(), 800);
+    return () => clearTimeout(timer);
+  }, [mounted, cart, addOrder, clearCart, totalPrice, searchParams]);
 
   return (
     <div className="min-h-screen bg-slate-50 py-12 px-4 flex flex-col items-center">
@@ -66,8 +93,11 @@ export default function SuccessPage() {
             </div>
 
             <div className="space-y-4 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
-              {purchasedItems.map((item) => (
-                <div key={item.product.id} className="flex items-center gap-4">
+              {purchasedItems.map((item, index) => (
+                <div
+                  key={`${item.product.id}-${index}`}
+                  className="flex items-center gap-4"
+                >
                   <div className="h-12 w-12 rounded-xl bg-white border border-slate-200 p-1 shrink-0 relative overflow-hidden">
                     <Image
                       src={item.product.thumbnail || item.product.images[0]}
@@ -105,7 +135,7 @@ export default function SuccessPage() {
           <div className="flex flex-col items-center gap-2 mb-10">
             <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-full text-[10px] font-mono text-slate-500 uppercase tracking-tighter">
               <ReceiptText size={12} />
-              Ref: {paymentId || "SANDBOX-TRX-12345"}
+              Ref: {finalPaymentId || "Procesando..."}
             </div>
           </div>
 

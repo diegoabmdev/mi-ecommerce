@@ -178,3 +178,12 @@ export interface HeroSlide {
   link: string;
   tag?: string;
 }
+
+export interface Order {
+  id: string;
+  date: string;
+  status: string;
+  total: number;
+  itemsCount: number;
+  items: any[];
+}

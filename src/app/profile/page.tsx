@@ -19,27 +19,6 @@ import { AddressCard } from "@/components/profile/AddressCard";
 import { Address } from "@/types/types";
 import Link from "next/link";
 
-const MOCK_ORDERS = [
-  {
-    id: "MP-982341",
-    date: "24 Feb, 2026",
-    status: "Entregado",
-    total: 125900,
-    items: 2,
-    image:
-      "https://cdn.dummyjson.com/products/images/smartphones/iPhone%2013%20Pro/thumbnail.png",
-  },
-  {
-    id: "MP-771203",
-    date: "15 Feb, 2026",
-    status: "En Camino",
-    total: 45000,
-    items: 1,
-    image:
-      "https://cdn.dummyjson.com/products/images/smartphones/iPhone%2013%20Pro/thumbnail.png",
-  },
-];
-
 export default function ProfilePage() {
   const {
     user,
@@ -50,6 +29,7 @@ export default function ProfilePage() {
     updateAddress,
     setDefaultAddress,
     isLoading,
+    orders,
   } = useUser();
 
   const [modal, setModal] = useState<{ open: boolean; data: Address | null }>({
@@ -105,120 +85,118 @@ export default function ProfilePage() {
 
       {/* 2. Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Direcciones (Col 8) */}
-        <section className="lg:col-span-8 space-y-6">
-          <div className="flex justify-between items-end px-4">
-            <div>
-              <h2 className="text-3xl font-black italic uppercase tracking-tighter flex items-center gap-3">
-                <MapPin className="text-indigo-600" size={28} /> Direcciones
-              </h2>
-              <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">
-                Gestiona tus puntos de entrega
-              </p>
+        {/* LADO IZQUIERDO: Direcciones y Configuración (Col 4) */}
+        <aside className="lg:col-span-4 space-y-6">
+          <section className="space-y-6">
+            <h2 className="text-2xl font-black italic uppercase tracking-tighter flex items-center gap-3">
+              <MapPin className="text-indigo-600" size={24} /> Direcciones
+            </h2>
+
+            <div className="grid grid-cols-1 gap-4">
+              <div className="space-y-4">
+                {addresses.length > 0 ? (
+                  addresses.map((addr) => (
+                    <AddressCard
+                      key={addr.id}
+                      address={addr}
+                      onEdit={() => setModal({ open: true, data: addr })}
+                      onDelete={deleteAddress}
+                      onSetDefault={setDefaultAddress}
+                    />
+                  ))
+                ) : (
+                  <EmptyState
+                    title="No hay registros"
+                    desc="Tu lista de direcciones está vacía."
+                    icon={<MapPin />}
+                    small
+                  />
+                )}
+              </div>
+              <Button
+                onClick={() => setModal({ open: true, data: null })}
+                className="rounded-2xl bg-slate-950 hover:bg-indigo-600 h-12 px-6 shadow-xl w-full"
+              >
+                <Plus size={20} className="mr-2" /> Nueva Dirección
+              </Button>
             </div>
-            <Button
-              onClick={() => setModal({ open: true, data: null })}
-              className="rounded-2xl bg-slate-950 hover:bg-indigo-600 h-12 px-6 shadow-xl"
-            >
-              <Plus size={20} className="mr-2" /> Nueva
-            </Button>
-          </div>
+          </section>
+        </aside>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {addresses.length > 0 ? (
-              addresses.map((addr) => (
-                <AddressCard
-                  key={addr.id}
-                  address={addr}
-                  onEdit={() => setModal({ open: true, data: addr })}
-                  onDelete={deleteAddress}
-                  onSetDefault={setDefaultAddress}
-                />
-              ))
-            ) : (
-              <EmptyState
-                title="No hay registros"
-                desc="Tu lista de direcciones está vacía."
-                icon={<MapPin />}
-              />
-            )}
-          </div>
-        </section>
+        {/* LADO DERECHO: Historial de Compras (Col 8) */}
+        <main className="lg:col-span-8 space-y-6">
+          <Card className="p-8 md:p-10 rounded-[3.5rem] bg-white border-slate-100 shadow-2xl shadow-slate-200/50">
+            <div className="flex justify-between items-center mb-8">
+              <div>
+                <h3 className="text-3xl font-black italic uppercase tracking-tighter flex items-center gap-3">
+                  <Package className="text-indigo-600" size={32} /> Mi Historial
+                </h3>
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">
+                  {orders.length} pedidos realizados hasta la fecha
+                </p>
+              </div>
+            </div>
 
-        {/* Orders & Security (Col 4) */}
-        <aside className="lg:col-span-4 space-y-8">
-          <Card className="p-8 rounded-[3rem] bg-white border-slate-100 shadow-xl shadow-slate-200/50">
-            <h3 className="text-xl font-black italic uppercase tracking-tighter mb-8 flex items-center gap-2">
-              <Package className="text-indigo-600" size={24} /> Historial
-            </h3>
-
-            <div className="space-y-6">
-              {MOCK_ORDERS.length > 0 ? (
-                MOCK_ORDERS.map((order) => (
+            <div className="space-y-4">
+              {orders.length > 0 ? (
+                orders.map((order) => (
                   <div
                     key={order.id}
-                    className="group relative flex items-center gap-4 p-4 rounded-[2rem] hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100"
+                    className="group flex flex-col md:flex-row md:items-center gap-6 p-6 rounded-[2.5rem] bg-slate-50/50 border border-slate-100 hover:bg-white hover:shadow-xl hover:shadow-indigo-500/5 transition-all"
                   >
-                    <div className="relative h-16 w-16 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 p-1 shrink-0">
-                      <Image
-                        src={order.image}
-                        alt="Product"
-                        fill
-                        className="object-contain"
-                      />
+                    {/* Preview de Imágenes (mini stack) */}
+                    <div className="flex -space-x-4">
+                      {order.items.slice(0, 3).map((item: any, i: number) => (
+                        <div
+                          key={i}
+                          className="h-16 w-16 rounded-2xl border-4 border-white bg-white shadow-sm overflow-hidden relative"
+                        >
+                          <Image
+                            src={item.product.thumbnail}
+                            alt="prod"
+                            fill
+                            className="object-contain p-1"
+                          />
+                        </div>
+                      ))}
                     </div>
 
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-start">
-                        <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-1">
-                          {order.id}
-                        </p>
-                        <span
-                          className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-tighter ${
-                            order.status === "Entregado"
-                              ? "bg-emerald-100 text-emerald-600"
-                              : "bg-amber-100 text-amber-600"
-                          }`}
-                        >
-                          {order.status}
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-1">
+                        <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">
+                          #{order.id.slice(-8)}
+                        </span>
+                        <span className="h-1 w-1 rounded-full bg-slate-300" />
+                        <span className="text-[10px] font-bold text-slate-400 uppercase">
+                          {order.date}
                         </span>
                       </div>
-                      <p className="text-sm font-black text-slate-900 truncate">
-                        {order.items} Artículo{order.items > 1 ? "s" : ""}
-                      </p>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                        {order.date}
+                      <p className="text-lg font-black text-slate-900 uppercase italic tracking-tighter">
+                        {order.itemsCount} Producto
+                        {order.itemsCount > 1 ? "s" : ""}
                       </p>
                     </div>
 
-                    <div className="text-right">
-                      <p className="text-sm font-black text-slate-900 tracking-tighter">
+                    <div className="flex items-center justify-between md:flex-col md:items-end gap-2">
+                      <p className="text-xl font-black text-slate-900 tracking-tighter">
                         ${order.total.toLocaleString("es-CL")}
                       </p>
-                      <button className="text-[10px] font-black text-indigo-500 uppercase italic hover:underline cursor-pointer">
-                        Detalles
-                      </button>
+                      <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-600 text-[9px] font-black uppercase italic">
+                        {order.status}
+                      </span>
                     </div>
                   </div>
                 ))
               ) : (
                 <EmptyState
-                  title="Sin Pedidos"
-                  desc="Aún no has realizado compras."
-                  icon={<Package />}
-                  small
+                  title="Sin compras"
+                  desc="Tus pedidos aparecerán aquí"
+                  icon={<Package size={40} />}
                 />
               )}
             </div>
-
-            <Button
-              variant="ghost"
-              className="w-full mt-6 rounded-2xl text-slate-400 font-bold uppercase tracking-widest text-[10px] hover:text-indigo-600"
-            >
-              Ver todo el historial
-            </Button>
           </Card>
-        </aside>
+        </main>
       </div>
 
       <AddressModal
