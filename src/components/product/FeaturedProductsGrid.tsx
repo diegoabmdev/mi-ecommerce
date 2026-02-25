@@ -1,10 +1,9 @@
-"use client"
+"use client";
 
 import { useProducts } from "@/hooks/useProducts";
-import { ProductCard } from "../product/ProductCard";
-import { Skeleton } from "../ui/skeleton";
+import { ProductCard } from "./ProductCard";
+import { ProductGridSkeleton } from "./ProductSkeletons";
 
-// components/product/FeaturedProductsGrid.tsx
 export function FeaturedProductsGrid({
   limit,
   category,
@@ -14,30 +13,24 @@ export function FeaturedProductsGrid({
 }) {
   const { products, loading, error } = useProducts();
 
-  // Lógica de filtrado
   const displayedProducts = products
     .filter((p) => !category || p.category === category)
     .slice(0, limit || products.length);
 
-  if (loading) {
-    return (
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="flex flex-col gap-3">
-            <Skeleton className="aspect-square w-full rounded-lg" />
-            <Skeleton className="h-4 w-2/3" />
-            <Skeleton className="h-4 w-1/3" />
-          </div>
-        ))}
-      </div>
-    );
-  }
+  if (loading) return <ProductGridSkeleton count={limit || 6} />;
 
   if (error)
-    return <p className="text-center text-red-500 py-10">Error: {error}</p>;
+    return (
+      <div className="py-20 text-center bg-rose-50 rounded-[2rem] border border-rose-100">
+        <p className="text-rose-600 font-bold uppercase tracking-widest text-xs">
+          Error de conexión
+        </p>
+        <p className="text-rose-400 text-sm mt-2">{error}</p>
+      </div>
+    );
 
   return (
-    <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
       {displayedProducts.map((product) => (
         <ProductCard key={product.id} product={product} />
       ))}

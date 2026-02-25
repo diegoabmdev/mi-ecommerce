@@ -62,7 +62,6 @@ export interface ProductMeta {
   barcode: string;
   qrCode: string;
 }
-//------------------------------
 
 //Filtros
 export interface FilterState {
@@ -168,4 +167,14 @@ export interface Bank {
   cardType: string;
   currency: string;
   iban: string;
+}
+
+export interface HeroSlide {
+  id: number;
+  title: string;
+  subtitle: string;
+  image: string;
+  color: string;
+  link: string;
+  tag?: string;
 }

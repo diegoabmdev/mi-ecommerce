@@ -1,51 +1,63 @@
+"use client";
 import { CreditCard, Headphones, ShieldCheck, TruckIcon } from "lucide-react";
-import React from "react";
+import { motion } from "framer-motion";
 
-const BenefitsSection = () => {
+const BENEFITS = [
+  {
+    icon: <TruckIcon className="h-6 w-6" />,
+    title: "Envío Gratis",
+    desc: "En compras sobre $50.000",
+    color: "bg-blue-50 text-blue-600",
+  },
+  {
+    icon: <ShieldCheck className="h-6 w-6" />,
+    title: "Compra Segura",
+    desc: "Protección al comprador",
+    color: "bg-green-50 text-green-600",
+  },
+  {
+    icon: <Headphones className="h-6 w-6" />,
+    title: "Atención 24/7",
+    desc: "Soporte dedicado",
+    color: "bg-purple-50 text-purple-600",
+  },
+  {
+    icon: <CreditCard className="h-6 w-6" />,
+    title: "Pago Seguro",
+    desc: "MercadoPago integrado",
+    color: "bg-orange-50 text-orange-600",
+  },
+];
+
+export const BenefitsSection = () => {
   return (
-    <section>
-      <div className="w-full max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
-          <div className="flex items-center space-x-4">
-            <div className="rounded-full bg-indigo-100 p-3">
-              <TruckIcon className="h-8 w-8 text-indigo-600" />
+    <section className="py-10 border-y border-slate-100 bg-white/50 backdrop-blur-sm rounded-[2.5rem]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 px-10">
+        {BENEFITS.map((item, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: i * 0.1 }}
+            className="flex items-center gap-5 group cursor-default"
+          >
+            <div
+              className={`p-4 rounded-2xl transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3 ${item.color}`}
+            >
+              {item.icon}
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">Envío Gratis</h3>
-              <p className="text-sm text-gray-600">En compras sobre $50.000</p>
+              <h3 className="font-black text-slate-900 uppercase tracking-tighter italic text-sm">
+                {item.title}
+              </h3>
+              <p className="text-xs font-medium text-slate-500 uppercase tracking-tight">
+                {item.desc}
+              </p>
             </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="rounded-full bg-indigo-100 p-3">
-              <ShieldCheck className="h-8 w-8 text-indigo-600" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900">Compra Segura</h3>
-              <p className="text-sm text-gray-600">Protección al comprador</p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="rounded-full bg-indigo-100 p-3">
-              <Headphones className="h-8 w-8 text-indigo-600" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900">Atención 24/7</h3>
-              <p className="text-sm text-gray-600">Soporte dedicado</p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="rounded-full bg-indigo-100 p-3">
-              <CreditCard className="h-8 w-8 text-indigo-600" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900">Pago Seguro</h3>
-              <p className="text-sm text-gray-600">MercadoPago integrado</p>
-            </div>
-          </div>
-        </div>
+          </motion.div>
+        ))}
       </div>
     </section>
   );
 };
-
-export default BenefitsSection;

@@ -1,16 +1,32 @@
+// src/app/product/[id]/page.tsx
 import { productService } from "@/services/productService";
 import ProductDetail from "@/components/product/ProductDetail";
 import { notFound } from "next/navigation";
+import { Metadata } from "next";
 
-export default async function Page({ params }: { params: { id: string } }) {
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const idNumber: number = Number(id);
+  const product = await productService.getProductById(Number(id));
+  
+  if (!product) return { title: "Producto no encontrado" };
 
-  const product = await productService.getProductById(idNumber);
+  return {
+    title: `${product.title} | Indigo Shop`,
+    description: product.description,
+    openGraph: {
+      images: [product.thumbnail],
+    },
+  };
+}
 
-  if (!product) {
-    notFound();
-  }
+export default async function Page({ params }: PageProps) {
+  const { id } = await params;
+  const product = await productService.getProductById(Number(id));
 
+  if (!product) notFound();
   return <ProductDetail key={id} product={product} />;
 }

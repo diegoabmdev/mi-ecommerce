@@ -1,18 +1,18 @@
+// src/app/login/page.tsx
 "use client";
 
 import { useState } from "react";
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
-import { Lock, User, ArrowRight, Zap } from "lucide-react";
+import { Lock, User, ArrowRight, Zap, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { AuthFormWrapper } from "@/components/auth/AuthFormWrapper";
+import { AuthInput } from "@/components/auth/AuthInput";
 
 export default function LoginPage() {
   const { login } = useUser();
   const router = useRouter();
-
   const [formData, setFormData] = useState({
     username: "emilys",
     password: "emilyspass",
@@ -25,82 +25,85 @@ export default function LoginPage() {
     try {
       await login(formData);
       router.push("/profile");
-    } catch (error) {
-      console.error("Login failed", error);
+    } catch {
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4">
-      <AuthFormWrapper 
-        title="Bienvenido a NovaCart" 
-        subtitle="Ingresa tus credenciales para continuar" 
+    <div className="min-h-screen flex items-center justify-center px-4 bg-[#FAFAFA]">
+      <AuthFormWrapper
+        title="Acceso"
+        subtitle="Secure Terminal Login"
         icon={Zap}
       >
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Campo Usuario */}
-          <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-4">
-              Usuario
-            </label>
-            <div className="relative">
-              <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-              <Input
-                value={formData.username}
-                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                className="pl-12 h-14 rounded-2xl border-slate-100 bg-slate-50 focus:bg-white focus:ring-indigo-500 transition-all"
-                placeholder="ej: emilys"
-                required
-              />
-            </div>
-          </div>
+          <AuthInput
+            label="Identity"
+            icon={User}
+            placeholder="Username"
+            value={formData.username}
+            onChange={(e) =>
+              setFormData({ ...formData, username: e.target.value })
+            }
+            required
+          />
 
-          {/* Campo Contraseña */}
-          <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-4">
-              Contraseña
-            </label>
-            <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-              <Input
-                type="password"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="pl-12 h-14 rounded-2xl border-slate-100 bg-slate-50 focus:bg-white focus:ring-indigo-500 transition-all"
-                placeholder="••••••••"
-                required
-              />
+          <div className="space-y-1">
+            <div className="flex justify-between items-center px-5 mb-1">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                Passcode
+              </label>
+              <Link
+                href="#"
+                className="text-[10px] font-black uppercase text-indigo-500 hover:underline"
+              >
+                Recuperar
+              </Link>
             </div>
+            <AuthInput
+              label="" // Label oculto porque usamos el personalizado arriba
+              icon={Lock}
+              type="password"
+              placeholder="••••••••"
+              value={formData.password}
+              onChange={(e) =>
+                setFormData({ ...formData, password: e.target.value })
+              }
+              required
+            />
           </div>
 
           <Button
             type="submit"
             disabled={loading}
-            className="w-full h-16 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-lg font-black uppercase italic tracking-tighter shadow-xl shadow-indigo-200 transition-all active:scale-95"
+            className="w-full h-18 bg-indigo-600 hover:bg-slate-950 text-white rounded-2xl text-lg font-black uppercase italic tracking-tighter shadow-xl shadow-indigo-100 transition-all py-8"
           >
-            {loading ? "Verificando..." : (
+            {loading ? (
+              "Verificando..."
+            ) : (
               <span className="flex items-center gap-2">
-                Entrar al sistema <ArrowRight size={20} />
+                Entrar al Sistema <ArrowRight size={20} />
               </span>
             )}
           </Button>
         </form>
 
-        {/* Info de prueba */}
-        <div className="mt-8 p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
-          <p className="text-[10px] text-indigo-600 font-bold uppercase tracking-wider text-center">
-            Cuenta de prueba: emilys / emilyspass
+        <div className="mt-8 flex flex-col items-center gap-6">
+          <div className="flex items-center gap-2 text-[10px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-50 px-4 py-2 rounded-full border border-emerald-100">
+            <ShieldCheck size={14} /> Encrypted Terminal
+          </div>
+          <p className="text-sm text-slate-400 font-bold uppercase tracking-tight">
+            ¿No eres miembro?{" "}
+            <Link
+              href="/register"
+              className="text-indigo-600 hover:text-slate-950 underline decoration-2 underline-offset-4"
+            >
+              Registrarte
+            </Link>
           </p>
         </div>
-
-        <p className="text-center mt-8 text-sm text-slate-400 font-medium">
-          ¿No tienes cuenta?{" "}
-          <Link href="/register" className="text-indigo-600 font-bold hover:underline">
-            Crea una ahora
-          </Link>
-        </p>
       </AuthFormWrapper>
     </div>
   );

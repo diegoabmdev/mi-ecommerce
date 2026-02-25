@@ -1,241 +1,151 @@
+// app/profile/page.tsx
 "use client";
 
 import { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { useUser } from "@/context/UserContext";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { MapPin, Package, LogOut, Plus, Trash2, Loader2 } from "lucide-react";
+import { MapPin, Package, LogOut, Plus, Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AddressModal } from "@/components/profile/AddressModal";
+import { AddressCard } from "@/components/profile/AddressCard";
 import { Address } from "@/types/types";
+import Link from "next/link";
 
 export default function ProfilePage() {
-  const {
-    user,
-    addresses,
-    logout,
-    deleteAddress,
-    addAddress,
-    updateAddress,
-    setDefaultAddress,
-    isLoading,
+  const { 
+    user, addresses, logout, deleteAddress, 
+    addAddress, updateAddress, setDefaultAddress, isLoading 
   } = useUser();
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
+  const [modal, setModal] = useState<{ open: boolean; data: Address | null }>({
+    open: false,
+    data: null,
+  });
 
-  const handleOpenCreate = () => {
-    setSelectedAddress(null);
-    setIsModalOpen(true);
+  if (isLoading) return <ProfileLoader />;
+  if (!user) return <NoSessionState />;
+
+  const handleSaveAddress = (data: Omit<Address, "id" | "isDefault">) => {
+    modal.data ? updateAddress(modal.data.id, data) : addAddress(data);
   };
-
-  const handleOpenEdit = (addr: Address) => {
-    setSelectedAddress(addr);
-    setIsModalOpen(true);
-  };
-
-  const handleSave = (data: Omit<Address, "id" | "isDefault">) => {
-    if (selectedAddress) {
-      updateAddress(selectedAddress.id, data);
-    } else {
-      addAddress(data);
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
-        <Loader2 className="h-10 w-10 animate-spin text-indigo-600" />
-        <p className="text-slate-400 font-black uppercase italic tracking-widest text-xs">
-          Sincronizando Perfil...
-        </p>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="p-20 text-center flex flex-col items-center gap-6">
-        <h2 className="text-3xl font-black uppercase italic text-slate-900">
-          Sesión no encontrada
-        </h2>
-        <Button
-          asChild
-          className="rounded-2xl bg-indigo-600 px-8 h-14 font-bold uppercase italic shadow-lg shadow-indigo-200"
-        >
-          <Link href="/login">Ir al Login</Link>
-        </Button>
-      </div>
-    );
-  }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
-      {/* Header Perfil */}
-      <header className="flex flex-col md:flex-row items-center gap-8 mb-12 bg-white p-10 rounded-[3rem] shadow-sm border border-slate-100">
-        <div className="relative h-32 w-32 rounded-full overflow-hidden border-4 border-indigo-500 shadow-xl">
-          <Image
-            src={user.image}
-            alt={user.username}
-            fill
-            className="object-cover"
-          />
-        </div>
+    <div className="max-w-7xl mx-auto px-6 py-12 space-y-10">
+      
+      {/* 1. Profile Header */}
+      <header className="relative overflow-hidden bg-slate-950 rounded-[3.5rem] p-8 md:p-12 text-white shadow-2xl">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -mr-20 -mt-20" />
+        
+        <div className="relative z-10 flex flex-col md:flex-row items-center gap-10">
+          <div className="relative h-40 w-40 rounded-[2.5rem] overflow-hidden border-4 border-white/10 rotate-3">
+            <Image src={user.image} alt={user.username} fill className="object-cover" />
+          </div>
 
-        <div className="text-center md:text-left flex-1">
-          <Badge className="bg-indigo-500 mb-2 uppercase italic font-black">
-            {user.role}
-          </Badge>
-          <h1 className="text-4xl font-black italic uppercase tracking-tighter text-slate-900">
-            {user.firstName} {user.lastName}
-          </h1>
-          <p className="text-slate-400 font-medium">
-            @{user.username} | {user.email}
-          </p>
-        </div>
+          <div className="flex-1 text-center md:text-left space-y-2">
+            <span className="inline-block px-4 py-1 bg-indigo-500 text-[10px] font-black uppercase italic rounded-full">
+              {user.role} Member
+            </span>
+            <h1 className="text-5xl font-black italic uppercase tracking-tighter">
+              {user.firstName} <span className="text-indigo-500">{user.lastName}</span>
+            </h1>
+            <p className="text-slate-400 font-bold tracking-widest text-sm uppercase">
+              Terminal: @{user.username} // {user.email}
+            </p>
+          </div>
 
-        <Button
-          onClick={logout}
-          variant="destructive"
-          className="rounded-2xl gap-2 uppercase font-bold italic hover:scale-105 transition-all h-14 px-6"
-        >
-          <LogOut size={18} /> Cerrar Sesión
-        </Button>
+          <Button 
+            onClick={logout} 
+            variant="outline" 
+            className="rounded-2xl border-white/10 bg-white/5 hover:bg-rose-500 hover:border-rose-500 text-white font-black uppercase italic h-16 px-8 transition-all"
+          >
+            <LogOut className="mr-2" size={20} /> Salir
+          </Button>
+        </div>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Sección Direcciones */}
-        <Card className="lg:col-span-2 p-8 rounded-[2.5rem] border-slate-100 shadow-sm">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-black italic uppercase tracking-tighter flex items-center gap-2 text-slate-900">
-              <MapPin className="text-indigo-600" /> Mis Direcciones
-            </h2>
-            <Button
-              onClick={handleOpenCreate}
-              className="rounded-xl bg-slate-900 hover:bg-indigo-600 transition-colors px-6"
+      {/* 2. Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        {/* Direcciones (Col 8) */}
+        <section className="lg:col-span-8 space-y-6">
+          <div className="flex justify-between items-end px-4">
+            <div>
+              <h2 className="text-3xl font-black italic uppercase tracking-tighter flex items-center gap-3">
+                <MapPin className="text-indigo-600" size={28} /> Direcciones
+              </h2>
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">Gestiona tus puntos de entrega</p>
+            </div>
+            <Button 
+              onClick={() => setModal({ open: true, data: null })}
+              className="rounded-2xl bg-slate-950 hover:bg-indigo-600 h-12 px-6 shadow-xl"
             >
-              <Plus size={18} className="mr-1" /> Nueva
+              <Plus size={20} className="mr-2" /> Nueva
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {addresses.length > 0 ? (
               addresses.map((addr) => (
                 <AddressCard
                   key={addr.id}
                   address={addr}
-                  onEdit={() => handleOpenEdit(addr)}
-                  onDelete={() => deleteAddress(addr.id)}
-                  onSetDefault={() => setDefaultAddress?.(addr.id)}
+                  onEdit={() => setModal({ open: true, data: addr })}
+                  onDelete={deleteAddress}
+                  onSetDefault={setDefaultAddress}
                 />
               ))
             ) : (
-              <EmptyState
-                icon={<MapPin className="text-slate-300 w-8 h-8" />}
-                title="No hay direcciones"
-                desc="Agrega una para agilizar tus compras."
-              />
+              <EmptyState title="No hay registros" desc="Tu lista de direcciones está vacía." icon={<MapPin />} />
             )}
           </div>
-        </Card>
+        </section>
 
-        {/* Sección Compras */}
-        <Card className="p-8 rounded-[2.5rem] border-slate-100 shadow-sm bg-slate-50/50">
-          <h2 className="text-2xl font-black italic uppercase tracking-tighter mb-8 flex items-center gap-2 text-slate-900">
-            <Package className="text-indigo-600" /> Compras
-          </h2>
-          <EmptyState
-            icon={<Package className="text-slate-300 w-8 h-8" />}
-            title="Sin pedidos"
-            desc="Tus compras aparecerán aquí pronto."
-          />
-        </Card>
+        {/* Orders & Security (Col 4) */}
+        <aside className="lg:col-span-4 space-y-8">
+          <Card className="p-8 rounded-[3rem] bg-slate-50/50 border-slate-100">
+            <h3 className="text-xl font-black italic uppercase tracking-tighter mb-6 flex items-center gap-2">
+              <Package className="text-indigo-600" /> Historial
+            </h3>
+            <EmptyState title="Sin Pedidos" desc="Aún no has realizado compras." icon={<Package />} small />
+          </Card>
+        </aside>
       </div>
 
       <AddressModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSave={handleSave}
-        addressToEdit={selectedAddress}
+        isOpen={modal.open}
+        onClose={() => setModal({ open: false, data: null })}
+        onSave={handleSaveAddress}
+        addressToEdit={modal.data}
       />
     </div>
   );
 }
 
-interface AddressCardProps {
-  address: Address;
-  onEdit: () => void;
-  onDelete: () => void;
-  onSetDefault: () => void;
-}
+// Sub-componentes internos de estado
+const ProfileLoader = () => (
+  <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
+    <Loader2 className="h-12 w-12 animate-spin text-indigo-600" strokeWidth={3} />
+    <p className="text-slate-400 font-black uppercase italic tracking-[0.3em] text-[10px]">Sincronizando Perfil...</p>
+  </div>
+);
 
-function AddressCard({
-  address,
-  onEdit,
-  onDelete,
-  onSetDefault,
-}: AddressCardProps) {
-  return (
-    <div className="p-5 rounded-[2rem] bg-slate-50 border border-slate-100 relative group transition-all hover:border-indigo-200">
-      <div className="cursor-pointer" onClick={onEdit}>
-        <p className="font-black text-slate-900 uppercase text-[10px] mb-1 tracking-widest">
-          {address.name}
-        </p>
-        <p className="text-sm text-slate-500 font-medium leading-tight">
-          {address.address}, {address.city}
-        </p>
-      </div>
-
-      <div className="flex items-center gap-2 mt-3">
-        {address.isDefault ? (
-          <Badge className="bg-indigo-600 text-white border-none text-[9px] font-black uppercase px-3 py-1">
-            Predeterminada
-          </Badge>
-        ) : (
-          <button
-            onClick={onSetDefault}
-            className="cursor-pointer text-[9px] font-black uppercase text-slate-400 hover:text-indigo-600 transition-colors tracking-tighter"
-          >
-            Establecer como principal
-          </button>
-        )}
-      </div>
-
-      {!address.isDefault && (
-        <button
-          onClick={onDelete}
-          className="cursor-pointer absolute top-4 right-4 p-2 bg-white rounded-full text-slate-300 hover:text-rose-500 shadow-sm opacity-0 group-hover:opacity-100 transition-all border border-slate-50"
-          aria-label="Eliminar dirección"
-        >
-          <Trash2 size={14} />
-        </button>
-      )}
+const NoSessionState = () => (
+  <div className="p-20 text-center flex flex-col items-center gap-6">
+    <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center text-slate-300">
+      <ShieldCheck size={40} />
     </div>
-  );
-}
+    <h2 className="text-3xl font-black uppercase italic text-slate-900">Acceso Restringido</h2>
+    <Button asChild className="rounded-2xl bg-indigo-600 px-10 h-16 font-black uppercase italic shadow-xl shadow-indigo-200">
+      <Link href="/login">Identificarse</Link>
+    </Button>
+  </div>
+);
 
-function EmptyState({
-  icon,
-  title,
-  desc,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  desc: string;
-}) {
-  return (
-    <div className="col-span-full py-12 flex flex-col items-center justify-center bg-white/50 rounded-[2rem] border border-dashed border-slate-200">
-      <div className="h-16 w-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-4">
-        {icon}
-      </div>
-      <p className="text-slate-500 font-black uppercase text-[10px] tracking-tighter">
-        {title}
-      </p>
-      <p className="text-[10px] text-slate-400 mt-1 uppercase font-medium">
-        {desc}
-      </p>
-    </div>
-  );
-}
+const EmptyState = ({ title, desc, icon, small = false }: any) => (
+  <div className={`flex flex-col items-center justify-center border-2 border-dashed border-slate-100 rounded-[2.5rem] bg-white/50 ${small ? 'py-8' : 'py-16 col-span-full'}`}>
+    <div className="text-slate-200 mb-4">{icon}</div>
+    <p className="text-slate-900 font-black uppercase italic text-xs tracking-tighter">{title}</p>
+    <p className="text-slate-400 text-[10px] uppercase font-bold mt-1 tracking-widest">{desc}</p>
+  </div>
+);

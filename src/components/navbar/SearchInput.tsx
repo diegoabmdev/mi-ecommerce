@@ -9,14 +9,12 @@ export const SearchInput = ({ className }: { className?: string }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Sincronizamos con "search" para coincidir con useProductsFilter
   const [query, setQuery] = useState(searchParams.get("search") || "");
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmedQuery = query.trim();
 
-    // Creamos los params basados en los actuales para no borrar otros filtros (como categoría)
     const params = new URLSearchParams(searchParams.toString());
 
     if (trimmedQuery) {
@@ -25,7 +23,6 @@ export const SearchInput = ({ className }: { className?: string }) => {
       params.delete("search");
     }
 
-    // Al buscar, siempre reseteamos a la página 1
     params.delete("page");
 
     router.push(`/products?${params.toString()}`);

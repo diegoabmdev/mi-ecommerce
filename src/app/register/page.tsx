@@ -1,20 +1,14 @@
+// src/app/register/page.tsx
 "use client";
 
 import { useState } from "react";
-import {
-  UserPlus,
-  Mail,
-  ArrowRight,
-  CheckCircle2,
-  KeyRound,
-  User,
-} from "lucide-react";
+import { UserPlus, Mail, ArrowRight, KeyRound, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AuthFormWrapper } from "@/components/auth/AuthFormWrapper";
+import { AuthInput } from "@/components/auth/AuthInput";
 import { authService } from "@/services/authService";
 import { RegisterData } from "@/types/types";
 
@@ -29,138 +23,102 @@ export default function RegisterPage() {
     password: "",
   });
 
+  const handleChange =
+    (field: keyof RegisterData) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      setFormData((prev) => ({ ...prev, [field]: e.target.value }));
+    };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       const data = await authService.register(formData);
-      toast.success(`¡Cuenta creada! Bienvenido ${data.firstName}`);
-      setTimeout(() => router.push("/login"), 2000);
+      toast.success(`¡Bienvenido, ${data.firstName}! Redirigiendo...`);
+      setTimeout(() => router.push("/login"), 1500);
     } catch {
-      toast.error("Error al registrar usuario");
+      toast.error("Error en el protocolo de registro");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center px-4 py-20 bg-[#FAFAFA]">
       <AuthFormWrapper
-        title="Únete a la Elite"
-        subtitle="Crea tu cuenta NovaCart en segundos"
+        title="Únete"
+        subtitle="Protocol Registration"
         icon={UserPlus}
       >
         <form
           onSubmit={handleSubmit}
-          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+          className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-6"
         >
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">
-              Nombre
-            </label>
-            <Input
-              required
-              placeholder="Nombre"
-              className="h-14 rounded-2xl border-slate-100 bg-slate-50"
-              onChange={(e) =>
-                setFormData({ ...formData, firstName: e.target.value })
-              }
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">
-              Apellido
-            </label>
-            <Input
-              required
-              placeholder="Apellido"
-              className="h-14 rounded-2xl border-slate-100 bg-slate-50"
-              onChange={(e) =>
-                setFormData({ ...formData, lastName: e.target.value })
-              }
-            />
-          </div>
-          <div className="md:col-span-2 space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">
-              Email
-            </label>
-            <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-              <Input
-                type="email"
-                required
-                placeholder="tu@email.com"
-                className="pl-12 h-14 rounded-2xl border-slate-100 bg-slate-50"
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-              />
-            </div>
-          </div>
-          <div className="md:col-span-2 space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">
-              Usuario Único
-            </label>
-            <div className="relative">
-              <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-              <Input
-                required
-                placeholder="ej: indigo_user"
-                className="pl-12 h-14 rounded-2xl border-slate-100 bg-slate-50"
-                onChange={(e) =>
-                  setFormData({ ...formData, username: e.target.value })
-                }
-              />
-            </div>
-          </div>
-          <div className="md:col-span-2 space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">
-              Contraseña
-            </label>
-            <div className="relative">
-              <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-              <Input
-                required
-                type="password"
-                placeholder="ej: ******"
-                className="pl-12 h-14 rounded-2xl border-slate-100 bg-slate-50"
-                onChange={(e) =>
-                  setFormData({ ...formData, password: e.target.value })
-                }
-              />
-            </div>
-          </div>
+          <AuthInput
+            label="Nombre"
+            icon={User}
+            placeholder="First Name"
+            required
+            onChange={handleChange("firstName")}
+          />
+          <AuthInput
+            label="Apellido"
+            icon={User}
+            placeholder="Last Name"
+            required
+            onChange={handleChange("lastName")}
+          />
 
-          <Button
-            type="submit"
-            disabled={loading}
-            className="md:col-span-2 h-16 bg-slate-900 hover:bg-indigo-600 text-white rounded-2xl text-lg font-black uppercase italic tracking-tighter transition-all group mt-4"
-          >
-            {loading ? (
-              "Procesando..."
-            ) : (
-              <span className="flex items-center gap-2">
-                Crear Cuenta{" "}
-                <ArrowRight className="group-hover:translate-x-1 transition-transform" />
-              </span>
-            )}
-          </Button>
+          <div className="md:col-span-2 space-y-6">
+            <AuthInput
+              label="Email Corporativo"
+              icon={Mail}
+              type="email"
+              placeholder="you@example.tech"
+              required
+              onChange={handleChange("email")}
+            />
+            <AuthInput
+              label="Usuario Único"
+              icon={User}
+              placeholder="indigo_explorer"
+              required
+              onChange={handleChange("username")}
+            />
+            <AuthInput
+              label="Passcode"
+              icon={KeyRound}
+              type="password"
+              placeholder="Min. 8 characters"
+              required
+              onChange={handleChange("password")}
+            />
+
+            <Button
+              disabled={loading}
+              className="w-full h-18 bg-slate-950 hover:bg-indigo-600 text-white rounded-2xl text-lg font-black uppercase italic tracking-tighter transition-all group py-8"
+            >
+              {loading ? (
+                "Procesando..."
+              ) : (
+                <span className="flex items-center gap-2">
+                  Registrarme{" "}
+                  <ArrowRight className="group-hover:translate-x-1 transition-transform" />
+                </span>
+              )}
+            </Button>
+          </div>
         </form>
 
-        <div className="mt-8 pt-8 border-t border-slate-50 flex flex-col items-center gap-4">
-          <div className="flex items-center gap-2 text-emerald-500 font-bold text-[10px] uppercase tracking-widest">
-            <CheckCircle2 size={14} /> Encriptación verificada
-          </div>
-          <p className="text-sm text-slate-400 font-medium">
-            ¿Ya eres miembro?{" "}
-            <Link
-              href="/login"
-              className="text-indigo-600 font-bold hover:underline"
-            >
-              Inicia Sesión
-            </Link>
+        <div className="mt-10 pt-8 border-t border-slate-100 flex flex-col items-center gap-4 text-center">
+          <p className="text-[10px] text-slate-400 font-bold uppercase max-w-70 leading-relaxed">
+            Sujeto a protocolos de privacidad Nova Cart.
           </p>
+          <Link
+            href="/login"
+            className="text-sm font-black uppercase italic text-indigo-600 hover:text-slate-950 transition-colors"
+          >
+            ¿Ya tienes acceso? Inicia Sesión
+          </Link>
         </div>
       </AuthFormWrapper>
     </div>

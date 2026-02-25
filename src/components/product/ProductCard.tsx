@@ -9,116 +9,95 @@ import { useWishlist } from "@/context/WishlistContext";
 import { Product } from "@/types/types";
 import { useCart } from "@/context/CartContext";
 import { Button } from "../ui/button";
+import { motion } from "framer-motion";
 
-interface ProductCardProps {
-  product: Product;
-}
-
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product }: { product: Product }) {
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { addToCart } = useCart();
 
   const currentPriceCLP = convertUSDtoCLP(product.price);
-  const originalPriceCLP =
-    product.discountPercentage > 0
-      ? Math.round(currentPriceCLP / (1 - product.discountPercentage / 100))
-      : currentPriceCLP;
+  const originalPriceCLP = product.discountPercentage > 0 
+    ? Math.round(currentPriceCLP / (1 - product.discountPercentage / 100)) 
+    : currentPriceCLP;
 
   const isFavorite = isInWishlist(product.id);
 
-  const handleWishlistClick = (e: React.MouseEvent) => {
-    e?.preventDefault?.();
-    e.stopPropagation();
-    toggleWishlist(product);
-  };
-
-  const handleAddToCartClick = (e: React.MouseEvent) => {
-    e?.preventDefault?.();
-    e.stopPropagation();
-    addToCart(product);
-  };
-
   return (
-    <Link
-      href={`/product/${product.id}`}
-      className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-all hover:shadow-lg"
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      className="group relative flex flex-col bg-white rounded-[2rem] border border-slate-100 overflow-hidden transition-all duration-500 hover:shadow-[0_20px_50px_rgba(79,70,229,0.1)] hover:-translate-y-1"
     >
-      {/* Wishlist Button */}
-      <button
-        onClick={handleWishlistClick}
-        className="cursor-pointer absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-card/80 backdrop-blur-sm transition-colors hover:bg-card"
-        aria-label={isFavorite ? "Quitar de favoritos" : "Agregar a favoritos"}
-      >
-        <Heart
-          className={`h-4 w-4 transition-colors ${isFavorite ? "fill-indigo-500 text-indigo-500" : "text-muted-foreground"
+      {/* Media Container */}
+      <div className="relative aspect-[1/1.1] overflow-hidden bg-slate-50">
+        <Link href={`/product/${product.id}`} className="block h-full w-full">
+          <Image
+            src={product.thumbnail}
+            alt={product.title}
+            fill
+            className="object-cover transition-transform duration-700 group-hover:scale-110"
+          />
+        </Link>
+        
+        {/* Actions Overlays */}
+        <div className="absolute top-4 right-4 flex flex-col gap-2 translate-x-12 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
+          <button
+            onClick={(e) => { e.preventDefault(); toggleWishlist(product); }}
+            className={`h-10 w-10 rounded-xl flex items-center justify-center backdrop-blur-md transition-all shadow-sm ${
+              isFavorite ? "bg-rose-500 text-white" : "bg-white/80 text-slate-900 hover:bg-white"
             }`}
-        />
-      </button>
+          >
+            <Heart className={`h-5 w-5 ${isFavorite ? "fill-current" : ""}`} />
+          </button>
+        </div>
 
-      {/* Discount Badge */}
-      {product.discountPercentage > 5 && (
-        <Badge className="absolute left-3 top-3 z-10 bg-accent text-accent-foreground">
-          -{Math.round(product.discountPercentage)}%
-        </Badge>
-      )}
-
-      {/* Image */}
-      <div className="relative aspect-square overflow-hidden bg-secondary">
-        <Image
-          src={product.thumbnail}
-          alt={product.title}
-          fill
-          className="object-cover transition-transform duration-300 group-hover:scale-105"
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-        />
+        {product.discountPercentage > 10 && (
+          <div className="absolute top-4 left-4 bg-slate-950 text-white text-[10px] font-black px-3 py-1.5 rounded-lg uppercase tracking-widest italic">
+            -{Math.round(product.discountPercentage)}%
+          </div>
+        )}
       </div>
 
-      {/* Info */}
-      <div className="flex flex-1 flex-col gap-2 p-4">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          {product.brand || product.category}
-        </p>
+      {/* Content */}
+      <div className="p-5 flex flex-col flex-1">
+        <div className="flex justify-between items-start mb-1">
+          <span className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.2em]">
+            {product.category}
+          </span>
+          <div className="flex items-center gap-1">
+            <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+            <span className="text-[10px] font-bold text-slate-400">{product.rating}</span>
+          </div>
+        </div>
 
-        <div className="hover:text-accent transition-colors">
-          <h3 className="line-clamp-1 text-sm font-semibold text-card-foreground">
+        <Link href={`/product/${product.id}`}>
+          <h3 className="text-sm font-bold text-slate-900 line-clamp-1 group-hover:text-indigo-600 transition-colors uppercase tracking-tight">
             {product.title}
           </h3>
-        </div>
+        </Link>
 
-        {/* Rating */}
-        <div className="flex items-center gap-1">
-          <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-          <span className="text-xs text-muted-foreground">
-            {product.rating.toFixed(1)}
-          </span>
-          <span className="text-xs text-muted-foreground">
-            ({product.reviews.length})
-          </span>
-        </div>
-
-        {/* Price */}
-        <div className="mt-auto flex items-center gap-2">
-          <span
-            className={`text-base font-bold ${product.discountPercentage > 15 ? "text-indigo-600" : "text-card-foreground"}`}
-          >
-            {formatCLP(currentPriceCLP)}
-          </span>
-          {product.discountPercentage > 5 && (
-            <span className="text-sm text-muted-foreground line-through decoration-indigo-400/50">
-              {formatCLP(originalPriceCLP)}
+        <div className="mt-4 flex items-end justify-between">
+          <div className="flex flex-col">
+            {product.discountPercentage > 5 && (
+              <span className="text-[10px] text-slate-400 line-through font-medium">
+                {formatCLP(originalPriceCLP)}
+              </span>
+            )}
+            <span className="text-lg font-black text-slate-950 italic">
+              {formatCLP(currentPriceCLP)}
             </span>
-          )}
-        </div>
+          </div>
 
-        {/* Add to Cart */}
-        <Button
-          className="mt-2 w-full bg-primary text-primary-foreground hover:bg-primary/90 py-5"
-          onClick={handleAddToCartClick}
-        >
-          <ShoppingCart className="mr-2 h-4 w-4" />
-          Agregar
-        </Button>
+          <Button
+            size="icon"
+            onClick={() => addToCart(product)}
+            className="h-10 w-10 rounded-xl bg-slate-950 hover:bg-indigo-600 text-white shadow-lg transition-all active:scale-90"
+          >
+            <ShoppingCart className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
-    </Link>
+    </motion.div>
   );
 }
