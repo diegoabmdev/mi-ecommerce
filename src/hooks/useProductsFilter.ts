@@ -7,7 +7,7 @@ import { convertUSDtoCLP } from "@/lib/utils";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useAsync } from "./useAsync";
 import { useDebounce } from "./useDebounce";
-import { Product } from "@/types/types";
+import { Category, Product } from "@/types/types";
 
 const ITEMS_PER_PAGE = 8;
 
@@ -18,7 +18,8 @@ export function useProductsFilter(initialSearch: string, initialCategory: string
 
   // 1. Data Fetching con Caché
   const { data: products = [], loading: loadingProducts, execute: execProducts } = useAsync<Product[]>("all-products-list");
-  const { data: categories = [], loading: loadingCats, execute: execCats } = useAsync<any>("all-categories-list");
+  const { data: categoriesData, loading: loadingCats, execute: execCats } = useAsync<Category[]>("all-categories-list");
+  const categories = categoriesData || [];
 
   // 2. Estados de Filtros
   const [searchTerm, setSearchTerm] = useState(initialSearch);

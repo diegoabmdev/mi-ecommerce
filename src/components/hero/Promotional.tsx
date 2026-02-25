@@ -1,98 +1,63 @@
+"use client";
 import Link from "next/link";
-import React from "react";
 import Image from "next/image";
 import Tittles from "./Tittles";
+import { motion } from "framer-motion";
 
-const SECONDARY_POSTERS = [
-  {
-    title: "Mercado Gourmet",
-    category: "groceries",
-    image:
-      "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=800&auto=format&fit=crop",
-    desc: "Frescura en tu puerta",
-  },
-  {
-    title: "Diseño Interior",
-    category: "furniture",
-    image:
-      "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=800&auto=format&fit=crop",
-    desc: "Confort moderno",
-  },
-  {
-    title: "Cuidado Facial",
-    category: "beauty",
-    image:
-      "https://images.unsplash.com/photo-1700107650012-36feae7e18ed?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    desc: "Brillo natural",
-  },
-  {
-    title: "Fragancias",
-    category: "fragrances",
-    image:
-      "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=800&auto=format&fit=crop",
-    desc: "Aromas exclusivos",
-  },
-];
-
-const Promotional = () => {
+export const Promotional = () => {
   return (
-    <section className="container mx-auto space-y-6">
-      <div className="flex items-end justify-between">
-          <Tittles title="Destacadas" badge="Promociones" />
-        </div>
-        
-      {/* Banner Principal Central (Laptops) */}
-      <Link
-        href="/products?category=laptops"
-        className="relative block w-full h-75 md:h-80 overflow-hidden shadow-2xl group"
-      >
-        <Image
-          src="https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-          alt="Laptops Premium"
-          fill
-          className="object-cover transition-transform duration-1000 group-hover:scale-105"
-          priority
-        />
-        <div className="absolute inset-0 bg-linear-to-r from-black/70 via-black/20 to-transparent flex flex-col justify-center px-8 md:px-16">
-          <span className="text-indigo-400 font-bold tracking-widest uppercase mb-2">
-            Tecnología de Vanguardia
-          </span>
-          <h2 className="text-4xl md:text-6xl font-black text-white max-w-lg leading-tight">
-            Potencia tu <br /> Creatividad.
-          </h2>
-          <div className="mt-6 flex items-center gap-2 text-white font-bold group-hover:gap-4 transition-all">
-            Ver Colección <span className="text-2xl">→</span>
-          </div>
-        </div>
-      </Link>
-
-      {/* Grid de 4 Posters Inferiores */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 px-2 md:px-0">
-        {SECONDARY_POSTERS.map((item) => (
-          <Link
-            key={item.category}
-            href={`/products?category=${item.category}`}
-            className="relative aspect-4/5 overflow-hidden shadow-lg group bg-slate-100"
-          >
+    <section className="space-y-8">
+      <Tittles title="Destacadas" badge="Promociones" />
+      
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-auto lg:h-137.5">
+        {/* Banner Principal - Izquierda (8 columnas) */}
+        <motion.div 
+          whileHover={{ y: -5 }}
+          className="lg:col-span-8 relative overflow-hidden group shadow-2xl shadow-indigo-500/10"
+        >
+          <Link href="/products?category=laptops" className="block h-full w-full">
             <Image
-              src={item.image}
-              alt={item.title}
+              src="https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?q=80&w=1200"
+              alt="Laptops"
               fill
-              className="object-cover transition-transform duration-500 group-hover:scale-110"
-              sizes="(max-width: 768px) 100vw, 25vw"
+              className="object-cover transition-transform duration-1000 group-hover:scale-105"
             />
-            {/* Overlay sutil */}
-            <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent p-6 flex flex-col justify-end text-white">
-              <p className="text-[10px] uppercase tracking-widest text-indigo-300 font-bold mb-1">
-                {item.desc}
-              </p>
-              <h3 className="text-xl font-bold">{item.title}</h3>
+            <div className="absolute inset-0 bg-linear-to-t from-slate-950 via-slate-950/20 to-transparent p-12 flex flex-col justify-end">
+              <span className="text-indigo-400 font-black tracking-widest uppercase text-xs mb-4">Tecnología de Vanguardia</span>
+              <h2 className="text-5xl md:text-7xl font-black text-white italic uppercase leading-[0.85] mb-8">
+                Potencia tu <br /> Creatividad
+              </h2>
+              <div className="flex">
+                <span className="bg-white text-black px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-widest group-hover:bg-indigo-500 group-hover:text-white transition-colors">
+                  Explorar Colección →
+                </span>
+              </div>
             </div>
           </Link>
-        ))}
+        </motion.div>
+
+        {/* Banner Secundario - Derecha (4 columnas) */}
+        <div className="lg:col-span-4 grid grid-rows-2 gap-6">
+          {[
+            { title: "Gourmet", cat: "groceries", img: "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=600" },
+            { title: "Skincare", cat: "beauty", img: "https://images.unsplash.com/photo-1700107650012-36feae7e18ed?q=80&w=600" }
+          ].map((item, i) => (
+            <motion.div 
+              key={i}
+              whileHover={{ y: -5 }}
+              className="relative overflow-hidden group"
+            >
+              <Link href={`/products?category=${item.cat}`} className="block h-full w-full">
+                <Image src={item.img} alt={item.title} fill className="object-cover transition-transform group-hover:scale-110" />
+                <div className="absolute inset-0 bg-slate-950/40 group-hover:bg-indigo-600/20 transition-colors" />
+                <div className="absolute inset-0 p-8 flex flex-col justify-end">
+                  <h3 className="text-2xl font-black text-white uppercase italic">{item.title}</h3>
+                </div>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
       </div>
     </section>
   );
 };
-
-export default Promotional;

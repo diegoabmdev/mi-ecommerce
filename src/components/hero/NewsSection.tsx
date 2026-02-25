@@ -2,7 +2,7 @@ import React from "react";
 import Tittles from "./Tittles";
 import { FeaturedProductsGrid } from "../product/FeaturedProductsGrid";
 
-const NewsSection = () => {
+export const NewsSection = () => {
   return (
     <section className="container mx-auto space-y-6">
       <div className="flex items-end justify-between">
@@ -12,5 +12,3 @@ const NewsSection = () => {
     </section>
   );
 };
-
-export default NewsSection;

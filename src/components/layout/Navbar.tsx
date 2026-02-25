@@ -3,11 +3,14 @@
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { Heart, ShoppingCart, Zap, Package, Tag, UserIcon } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 
 // Hooks y Contextos
 import { useCategory } from "@/hooks/useCategory";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { useUser } from "@/context/UserContext";
 
 // Componentes Refactorizados
 import { AnnouncementBar } from "@/components/navbar/AnnouncementBar";
@@ -16,18 +19,11 @@ import { MegaMenu } from "@/components/navbar/MegaMenu";
 import { SearchInput } from "@/components/navbar/SearchInput";
 import { NavBadgeIcon } from "@/components/navbar/NavBadgeIcon";
 import { DesktopLinks } from "@/components/navbar/DesktopLinks";
-import { Logo } from "@/components/navbar/LogoNavbar";
+import { Logo } from "@/components/navbar/Logo";
 import { SupportLinks } from "@/components/navbar/SupportLinks";
-import Link from "next/link";
-import Image from "next/image";
-import { useUser } from "@/context/UserContext";
 
 // Tipos
-export interface NavLink {
-  name: string;
-  href: string;
-  icon: React.ReactNode;
-}
+import { NavLink } from "@/types/types";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -36,7 +32,7 @@ export default function Navbar() {
   const { categories, loading } = useCategory();
   const { user } = useUser();
 
-  // Estados de UI
+  // Estados de Interfaz
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMegaMenuHovered, setIsMegaMenuHovered] = useState(false);
   const [mobileMenuView, setMobileMenuView] = useState<"main" | "categories">("main");
@@ -52,8 +48,10 @@ export default function Navbar() {
       <AnnouncementBar />
 
       <div className="bg-background/95 backdrop-blur-md border-b">
-        {/* FILA SUPERIOR: Logo, Buscador y Acciones */}
+        {/* --- BLOQUE 1: CABECERA PRINCIPAL (Logo, Search, Actions) --- */}
         <div className="mx-auto max-w-360 flex h-16 lg:h-20 items-center justify-between gap-4 px-4 lg:px-10">
+          
+          {/* Lado Izquierdo: Menú Móvil y Logo */}
           <div className="flex items-center gap-4">
             <MobileMenu
               isOpen={isMobileMenuOpen}
@@ -67,17 +65,19 @@ export default function Navbar() {
             <Logo />
           </div>
 
+          {/* Centro: Buscador (Solo Desktop) */}
           <SearchInput className="hidden lg:flex flex-1 max-w-2xl mx-12" />
 
+          {/* Lado Derecho: Acciones de Usuario */}
           <div className="flex items-center gap-2 lg:gap-3">
-            {/* Profile */}
+            {/* Perfil de Usuario con Avatar Dinámico */}
             <Link href={user ? "/profile" : "/login"}>
               <div className="relative h-11 w-11 flex items-center justify-center rounded-xl transition-all hover:bg-slate-100 border border-transparent hover:border-slate-200 group">
-                {user ? (
+                {user?.image ? (
                   <div className="relative h-8 w-8 rounded-full overflow-hidden border-2 border-indigo-500 shadow-sm transition-transform group-hover:scale-110">
                     <Image
                       src={user.image}
-                      alt={user.username}
+                      alt={user.username || "Avatar"}
                       fill
                       className="object-cover"
                     />
@@ -87,14 +87,14 @@ export default function Navbar() {
                 )}
               </div>
             </Link>
-            {/* Wishlist */}
+
             <NavBadgeIcon
               href="/wishlist"
               count={totalFavorites}
               icon={<Heart className="h-6 w-6" />}
-              hoverClass="hover:text-indigo-500 hover:bg-indigo-50"
+              hoverClass="hover:text-pink-500 hover:bg-pink-50"
             />
-            {/* Carrito */}
+
             <NavBadgeIcon
               href="/cart"
               count={totalItems}
@@ -104,7 +104,7 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* FILA INFERIOR: Navegación Desktop */}
+        {/* --- BLOQUE 2: NAVEGACIÓN SECUNDARIA (Desktop Only) --- */}
         <nav className="hidden lg:block border-t border-border/40 bg-muted/5">
           <div className="mx-auto max-w-360 px-10 flex items-center justify-between h-12">
             <div className="flex items-center gap-2 h-full">
@@ -116,11 +116,12 @@ export default function Navbar() {
               />
               <DesktopLinks navLinks={navLinks} pathname={pathname} />
             </div>
+            
             <SupportLinks />
           </div>
         </nav>
 
-        {/* Buscador Mobile (Se muestra solo en pantallas pequeñas bajo el logo) */}
+        {/* --- BLOQUE 3: BUSCADOR MÓVIL (Solo visible en Mobile) --- */}
         <div className="lg:hidden px-4 pb-4">
           <SearchInput />
         </div>

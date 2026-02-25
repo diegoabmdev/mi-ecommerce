@@ -1,11 +1,11 @@
 // app/page.tsx
 import { Hero } from "@/components/hero/HeroSection";
+import { BenefitsSection } from "@/components/hero/BenefitsSection";
 import { CategoryGrid } from "@/components/hero/CategoryGrid";
 import { FlashSales } from "@/components/hero/FlashSales";
-import BenefitsSection from "@/components/hero/BenefitsSection";
-import Promotional from "@/components/hero/Promotional";
+import { NewsSection } from "@/components/hero/NewsSection";
+import { Promotional } from "@/components/hero/Promotional";
 import { BestSellers } from "@/components/hero/BestSellers";
-import NewsSection from "@/components/hero/NewsSection";
 
 export default function HomePage() {
   return (
