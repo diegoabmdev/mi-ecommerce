@@ -3,6 +3,7 @@ import { Hero } from "@/components/hero/HeroSection";
 import { BenefitsSection } from "@/components/hero/BenefitsSection";
 import { CategoryGrid } from "@/components/hero/CategoryGrid";
 import { FlashSales } from "@/components/hero/FlashSales";
+import { Widget } from "@/components/hero/Widget";
 import { NewsSection } from "@/components/hero/NewsSection";
 import { Promotional } from "@/components/hero/Promotional";
 import { BestSellers } from "@/components/hero/BestSellers";
@@ -15,6 +16,7 @@ export default function HomePage() {
         <BenefitsSection />
         <CategoryGrid />
         <FlashSales />
+        <Widget />
         <NewsSection />
         <Promotional />
         <BestSellers />
