@@ -36,7 +36,11 @@ interface UserContextType {
   setDefaultAddress: (id: string) => void;
   orders: Order[];
   createOrder: (cart: CartItem[], total: number, paymentId: string) => Order;
-  processPurchase: (cart: CartItem[], total: number, paymentId: string) => Order;
+  processPurchase: (
+    cart: CartItem[],
+    total: number,
+    paymentId: string,
+  ) => Order;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -45,7 +49,10 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [orders, setOrders] = useLocalStorage<Order[]>(ORDERS_KEY, []);
-  const [addresses, setAddresses] = useLocalStorage<Address[]>(ADDRESSES_KEY, []);
+  const [addresses, setAddresses] = useLocalStorage<Address[]>(
+    ADDRESSES_KEY,
+    [],
+  );
 
   const hasFetched = useRef(false);
 
@@ -75,7 +82,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       itemsCount: cart.reduce((acc, item) => acc + item.quantity, 0),
       items: [...cart],
     }),
-    []
+    [],
   );
 
   const processPurchase = useCallback(
@@ -84,7 +91,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       setOrders((prev) => [newOrder, ...prev]);
       return newOrder;
     },
-    [createOrder, setOrders]
+    [createOrder, setOrders],
   );
 
   // --- Autenticación e Inicialización ---
@@ -129,7 +136,9 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         const userData = response as unknown as User;
 
         const storedAddresses = localStorage.getItem(ADDRESSES_KEY);
-        const parsedAddresses = storedAddresses ? JSON.parse(storedAddresses) : [];
+        const parsedAddresses = storedAddresses
+          ? JSON.parse(storedAddresses)
+          : [];
 
         if (parsedAddresses.length === 0) {
           const defaultAddr = createDefaultAddress(userData);
@@ -143,7 +152,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         throw error;
       }
     },
-    [setAddresses]
+    [setAddresses],
   );
 
   const logout = useCallback(() => {
@@ -163,32 +172,47 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       ]);
       toast.success("Dirección añadida");
     },
-    [setAddresses]
+    [setAddresses],
   );
 
   const deleteAddress = useCallback(
     (id: string) => {
-      setAddresses((prev) => prev.filter((a) => a.id !== id));
+      setAddresses((prev) => {
+        if (prev.length <= 1) {
+          toast.error("Debes mantener al menos una dirección");
+          return prev;
+        }
+
+        const addressToDelete = prev.find((a) => a.id === id);
+        
+        if (addressToDelete?.isDefault) {
+          toast.error("No puedes eliminar la dirección predeterminada");
+          return prev;
+        }
+
+        toast.success("Dirección eliminada");
+        return prev.filter((a) => a.id !== id);
+      });
     },
-    [setAddresses]
+    [setAddresses],
   );
 
   const updateAddress = useCallback(
     (id: string, data: Partial<Address>) => {
       setAddresses((prev) =>
-        prev.map((a) => (a.id === id ? { ...a, ...data } : a))
+        prev.map((a) => (a.id === id ? { ...a, ...data } : a)),
       );
     },
-    [setAddresses]
+    [setAddresses],
   );
 
   const setDefaultAddress = useCallback(
     (id: string) => {
       setAddresses((prev) =>
-        prev.map((a) => ({ ...a, isDefault: a.id === id }))
+        prev.map((a) => ({ ...a, isDefault: a.id === id })),
       );
     },
-    [setAddresses]
+    [setAddresses],
   );
 
   // --- Context Value ---
@@ -220,7 +244,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       orders,
       createOrder,
       processPurchase,
-    ]
+    ],
   );
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
