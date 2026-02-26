@@ -40,7 +40,6 @@ export default function Navbar() {
   const navLinks: NavLink[] = [
     { name: "Inicio", href: "/", icon: <Zap className="w-4 h-4" /> },
     { name: "Productos", href: "/products", icon: <Package className="w-4 h-4" /> },
-    { name: "Ofertas", href: "/offers", icon: <Tag className="w-4 h-4" /> },
   ];
 
   return (

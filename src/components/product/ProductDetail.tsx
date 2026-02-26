@@ -123,7 +123,7 @@ export default function ProductDetail({ product }: { product: Product }) {
                   onClick={() => addToCart(product)}
                   className="flex-1 h-20 bg-indigo-600 hover:bg-slate-950 text-white rounded-[2rem] text-xl font-black uppercase italic shadow-2xl shadow-indigo-200 transition-all active:scale-95"
                 >
-                  <ShoppingCart className="mr-3 h-6 w-6" /> Add to Cart
+                  <ShoppingCart className="mr-3 h-6 w-6" /> Añadir al carrito
                 </Button>
                 <Button
                   onClick={() => toggleWishlist(product)}
@@ -192,14 +192,14 @@ export default function ProductDetail({ product }: { product: Product }) {
             <div className="lg:col-span-4">
               <div className="sticky top-24 bg-slate-950 p-10 rounded-[3.5rem] text-white">
                 <Zap className="text-indigo-500 w-12 h-12 mb-6" />
-                <h3 className="text-3xl font-black uppercase italic leading-none mb-6">The Indigo <span className="text-indigo-500">Standard</span></h3>
+                <h3 className="text-3xl font-black uppercase italic leading-none mb-6">Nova<span className="text-indigo-500">Cart</span></h3>
                 <ul className="space-y-8 mb-10">
-                  <BenefitItem text="Certified tech-expert inspection" />
-                  <BenefitItem text="24/7 Premium technical support" />
-                  <BenefitItem text="Exclusive Indigo membership perks" />
+                  <BenefitItem text="Experiencia certificada" />
+                  <BenefitItem text="24/7 Soporte Premium" />
+                  <BenefitItem text="Membrecia exclusiva" />
                 </ul>
                 <Button className="w-full bg-white text-black hover:bg-indigo-500 hover:text-white py-8 rounded-2xl font-black uppercase italic transition-all">
-                  Join the Club
+                  Unete al club
                 </Button>
               </div>
             </div>
