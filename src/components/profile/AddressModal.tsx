@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -62,17 +63,22 @@ export function AddressModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="rounded-[2.5rem] border-none shadow-2xl p-8 max-w-md bg-white">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter text-slate-900">
-            {addressToEdit ? "Editar Dirección" : "Nueva Dirección"}
-          </DialogTitle>
+          <DialogTitle>Nueva Dirección</DialogTitle>
+          <DialogDescription className="sr-only">
+            Formulario para añadir una nueva dirección de envío.
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest">
+            <label
+              htmlFor="name"
+              className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest"
+            >
               Nombre (Ej: Casa / Oficina)
             </label>
             <Input
+              id="name"
               required
               value={formData.name}
               onChange={(e) =>
@@ -84,10 +90,14 @@ export function AddressModal({
           </div>
 
           <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest">
+            <label
+              htmlFor="address"
+              className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest"
+            >
               Dirección Completa
             </label>
             <Input
+              id="address"
               required
               value={formData.address}
               onChange={(e) =>
@@ -100,10 +110,14 @@ export function AddressModal({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest">
+              <label
+                htmlFor="city"
+                className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest"
+              >
                 Ciudad
               </label>
               <Input
+                id="city"
                 required
                 value={formData.city}
                 onChange={(e) =>
@@ -113,10 +127,14 @@ export function AddressModal({
               />
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest">
+              <label
+                htmlFor="postalCode"
+                className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest"
+              >
                 C. Postal
               </label>
               <Input
+                id="postalCode"
                 required
                 value={formData.postalCode}
                 onChange={(e) =>
