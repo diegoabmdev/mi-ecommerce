@@ -11,7 +11,6 @@ import {
 } from "react";
 import { Product, CartItem } from "@/types/types";
 import { convertUSDtoCLP } from "@/lib/utils";
-import { toast } from "sonner";
 
 const CART_STORAGE_KEY = "novacart_storage";
 
@@ -46,7 +45,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (isLoaded) {
-      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+      if (cart.length === 0) {
+        localStorage.removeItem(CART_STORAGE_KEY);
+      } else {
+        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+      }
     }
   }, [cart, isLoaded]);
 
@@ -87,6 +90,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const clearCart = useCallback(() => {
     setCart([]);
+    localStorage.removeItem(CART_STORAGE_KEY);
   }, []);
 
   const totalItems = useMemo(
