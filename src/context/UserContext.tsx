@@ -1,4 +1,3 @@
-// src/context/UserContext.tsx
 "use client";
 
 import {
@@ -12,7 +11,13 @@ import {
 } from "react";
 import { authService } from "@/services/authService";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { User, Address, LoginCredentials, Order } from "@/types/types";
+import {
+  User,
+  Address,
+  LoginCredentials,
+  Order,
+  CartItem,
+} from "@/types/types";
 import { toast } from "sonner";
 
 const AUTH_TOKEN_KEY = "novacart_token";
@@ -30,7 +35,8 @@ interface UserContextType {
   updateAddress: (id: string, data: Partial<Address>) => void;
   setDefaultAddress: (id: string) => void;
   orders: Order[];
-  addOrder: (order: Order) => void;
+  createOrder: (cart: CartItem[], total: number, paymentId: string) => Order;
+  processPurchase: (cart: CartItem[], total: number, paymentId: string) => Order;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -39,14 +45,11 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [orders, setOrders] = useLocalStorage<Order[]>(ORDERS_KEY, []);
-
-  const [addresses, setAddresses] = useLocalStorage<Address[]>(
-    ADDRESSES_KEY,
-    [],
-  );
+  const [addresses, setAddresses] = useLocalStorage<Address[]>(ADDRESSES_KEY, []);
 
   const hasFetched = useRef(false);
 
+  // --- Helpers ---
   const createDefaultAddress = (userData: User): Address => ({
     id: "default-api",
     name: "Casa (DummyJSON)",
@@ -58,13 +61,33 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     isDefault: true,
   });
 
-  const addOrder = useCallback(
-    (order: Order) => {
-      setOrders((prev) => [order, ...prev]);
-    },
-    [setOrders],
+  // --- Lógica de Órdenes (SOLID) ---
+  const createOrder = useCallback(
+    (cart: CartItem[], total: number, paymentId: string): Order => ({
+      id: paymentId,
+      date: new Date().toLocaleDateString("es-CL", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }),
+      status: "Pagado",
+      total: total,
+      itemsCount: cart.reduce((acc, item) => acc + item.quantity, 0),
+      items: [...cart],
+    }),
+    []
   );
 
+  const processPurchase = useCallback(
+    (cart: CartItem[], total: number, paymentId: string) => {
+      const newOrder = createOrder(cart, total, paymentId);
+      setOrders((prev) => [newOrder, ...prev]);
+      return newOrder;
+    },
+    [createOrder, setOrders]
+  );
+
+  // --- Autenticación e Inicialización ---
   useEffect(() => {
     if (hasFetched.current) return;
 
@@ -101,19 +124,15 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     async (credentials: LoginCredentials) => {
       try {
         const response = await authService.login(credentials);
-
         localStorage.setItem(AUTH_TOKEN_KEY, response.accessToken);
 
         const userData = response as unknown as User;
 
         const storedAddresses = localStorage.getItem(ADDRESSES_KEY);
-        const parsedAddresses = storedAddresses
-          ? JSON.parse(storedAddresses)
-          : [];
+        const parsedAddresses = storedAddresses ? JSON.parse(storedAddresses) : [];
 
         if (parsedAddresses.length === 0) {
           const defaultAddr = createDefaultAddress(userData);
-          localStorage.setItem(ADDRESSES_KEY, JSON.stringify([defaultAddr]));
           setAddresses([defaultAddr]);
         }
 
@@ -124,7 +143,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         throw error;
       }
     },
-    [setAddresses],
+    [setAddresses]
   );
 
   const logout = useCallback(() => {
@@ -135,6 +154,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     toast.info("Sesión cerrada");
   }, [setAddresses]);
 
+  // --- Gestión de Direcciones ---
   const addAddress = useCallback(
     (data: Omit<Address, "id" | "isDefault">) => {
       setAddresses((prev) => [
@@ -143,34 +163,35 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       ]);
       toast.success("Dirección añadida");
     },
-    [setAddresses],
+    [setAddresses]
   );
 
   const deleteAddress = useCallback(
     (id: string) => {
       setAddresses((prev) => prev.filter((a) => a.id !== id));
     },
-    [setAddresses],
+    [setAddresses]
   );
 
   const updateAddress = useCallback(
     (id: string, data: Partial<Address>) => {
       setAddresses((prev) =>
-        prev.map((a) => (a.id === id ? { ...a, ...data } : a)),
+        prev.map((a) => (a.id === id ? { ...a, ...data } : a))
       );
     },
-    [setAddresses],
+    [setAddresses]
   );
 
   const setDefaultAddress = useCallback(
     (id: string) => {
       setAddresses((prev) =>
-        prev.map((a) => ({ ...a, isDefault: a.id === id })),
+        prev.map((a) => ({ ...a, isDefault: a.id === id }))
       );
     },
-    [setAddresses],
+    [setAddresses]
   );
 
+  // --- Context Value ---
   const value = useMemo(
     () => ({
       user,
@@ -183,7 +204,8 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       updateAddress,
       setDefaultAddress,
       orders,
-      addOrder,
+      createOrder,
+      processPurchase,
     }),
     [
       user,
@@ -196,8 +218,9 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       updateAddress,
       setDefaultAddress,
       orders,
-      addOrder,
-    ],
+      createOrder,
+      processPurchase,
+    ]
   );
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
